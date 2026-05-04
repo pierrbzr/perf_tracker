@@ -17,8 +17,8 @@ from assets.theme import (
     BORDER_RADIUS
 )
 from models.player import get_all_players
-from models.wellness import has_submitted_today
-from models.rpe import has_submitted_today
+from models.wellness import has_wellness_submitted_today
+from models.rpe import has_rpe_submitted_today
 
 class WellnessRPEPlayerList(QWidget):
     """
@@ -142,13 +142,14 @@ class WellnessRPEPlayerList(QWidget):
         players = get_all_players()
 
         for player in players:
-            submitted = has_submitted_today(player["id"])
-            card = self._make_player_card(player, submitted)
+            wellness_submitted = has_wellness_submitted_today(player["id"])
+            rpe_submitted = has_rpe_submitted_today(player["id"])
+            card = self._make_player_card(player, wellness_submitted, rpe_submitted)
             self.list_layout.addWidget(card)
 
         self.list_layout.addStretch()
 
-    def _make_player_card(self, player: dict, submitted: bool) -> QFrame:
+    def _make_player_card(self, player: dict, wellness_submitted: bool, rpe_submitted: bool) -> QFrame:
         """Crée une carte joueur cliquable."""
         card = QFrame()
         card.setFixedHeight(72)
@@ -214,8 +215,8 @@ class WellnessRPEPlayerList(QWidget):
         right_layout.setSpacing(12)
 
         # Statut Wellness
-        w_color = COLOR_GOOD if submitted else COLOR_DANGER
-        w_statut = QLabel("Wellness ✓" if submitted else "Wellness ✗")
+        w_color = COLOR_GOOD if wellness_submitted else COLOR_DANGER
+        w_statut = QLabel("Wellness ✓" if wellness_submitted else "Wellness ✗")
         w_statut.setFixedWidth(80)
         w_statut.setAlignment(Qt.AlignCenter)
         w_statut.setStyleSheet(f"""
@@ -228,8 +229,9 @@ class WellnessRPEPlayerList(QWidget):
         """)
 
         # Statut RPE
-        r_color = COLOR_GOOD if submitted else COLOR_DANGER
-        r_statut = QLabel("RPE ✓" if submitted else "RPE ✗")
+        rpe_submitted = has_rpe_submitted_today(player["id"])
+        r_color = COLOR_GOOD if rpe_submitted else COLOR_DANGER
+        r_statut = QLabel("RPE ✓" if rpe_submitted else "RPE ✗")
         r_statut.setFixedWidth(80)
         r_statut.setAlignment(Qt.AlignCenter)
         r_statut.setStyleSheet(f"""

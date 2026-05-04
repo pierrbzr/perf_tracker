@@ -16,7 +16,7 @@ from assets.theme import (
     FONT_FAMILY, FONT_SIZE_TITLE, FONT_SIZE_BODY, FONT_SIZE_SMALL,
     BORDER_RADIUS, PADDING_CARD
 )
-from models.rpe import create_rpe, has_submitted_today, get_rpe_today
+from models.rpe import create_rpe, has_rpe_submitted_today, get_rpe_today
 
 
 # Libellés et descriptions des indicateurs
@@ -208,7 +208,7 @@ class RPEForm(QWidget):
 
     def _check_already_submitted(self):
         """Pré-remplit le formulaire si déjà saisi aujourd'hui, mais reste modifiable."""
-        if has_submitted_today(self.player["id"]):
+        if has_rpe_submitted_today(self.player["id"]):
             existing = get_rpe_today(self.player["id"])
             
             # Pré-remplir les valeurs

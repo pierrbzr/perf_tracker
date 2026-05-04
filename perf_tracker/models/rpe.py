@@ -133,7 +133,7 @@ def get_team_rpe_range(date_start: str, date_end: str) -> list:
 # VÉRIFICATION
 # ============================================================
 
-def has_submitted_today(player_id: int) -> bool:
+def has_rpe_submitted_today(player_id: int) -> bool:
     """Vérifie si un joueur a déjà saisi son RPE aujourd'hui."""
     return get_rpe_today(player_id) is not None
 

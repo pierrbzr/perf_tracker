@@ -16,7 +16,7 @@ from assets.theme import (
     FONT_FAMILY, FONT_SIZE_TITLE, FONT_SIZE_BODY, FONT_SIZE_SMALL,
     BORDER_RADIUS, PADDING_CARD
 )
-from models.wellness import create_wellness, has_submitted_today, get_wellness_today
+from models.wellness import create_wellness, has_wellness_submitted_today, get_wellness_today
 
 
 # Libellés et descriptions des indicateurs
@@ -224,7 +224,7 @@ class WellnessForm(QWidget):
 
     def _check_already_submitted(self):
         """Pré-remplit le formulaire si déjà saisi aujourd'hui, mais reste modifiable."""
-        if has_submitted_today(self.player["id"]):
+        if has_wellness_submitted_today(self.player["id"]):
             existing = get_wellness_today(self.player["id"])
             
             # Pré-remplir les valeurs

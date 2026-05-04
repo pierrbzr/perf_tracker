@@ -135,7 +135,7 @@ def get_team_wellness_range(date_start: str, date_end: str) -> list:
 # VÉRIFICATION
 # ============================================================
 
-def has_submitted_today(player_id: int) -> bool:
+def has_wellness_submitted_today(player_id: int) -> bool:
     """Vérifie si un joueur a déjà saisi son wellness aujourd'hui."""
     return get_wellness_today(player_id) is not None
 
