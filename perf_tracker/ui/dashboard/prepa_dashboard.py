@@ -6,12 +6,13 @@ Dashboard préparateur physique — placeholder en attendant le vrai contenu.
 from queue import Full
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QScrollArea
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from models.wellness import get_team_wellness_today, get_submission_wellness_rate_today
 from models.rpe import get_team_rpe_today, get_submission_rpe_rate_today
+from models.player import get_player_count_post, get_all_players
 
 from numpy import mean # type: ignore
 
@@ -100,13 +101,22 @@ class PrepaDashboard(QWidget):
         else:
             return str(rpe_rate["rate"]) + "%"
         
+    def _print_all_players_posts(self) -> list:
+        gardiens = get_player_count_post("Gardien")
+        attaquants = get_player_count_post("Attaquant")
+        defenseurs = get_player_count_post("Défenseur")
+
+        team = [gardiens, attaquants, defenseurs]
+        print(team)
+        return team
+        
     def _build_ui(self):
 
         average_wellness = self.calc_average_wellness()
         average_rpe = self.calc_average_rpe()
         fill_rate_wellness = self.calc_fill_rate_wellness()
         fill_rate_rpe = self.calc_fill_rate_rpe()
-
+        
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(16)
@@ -134,14 +144,18 @@ class PrepaDashboard(QWidget):
  # ── Layout Wellness / RPE ───────────────────────────────────────
  
         wellness_rpe_layout = QHBoxLayout()
+        player_layout = QHBoxLayout()
         wellness_rpe_layout.setSpacing(16)
+        player_layout.setSpacing(16)
         main_layout.addLayout(wellness_rpe_layout)
+        main_layout.addLayout(player_layout)
 
  # ── Widget Wellness ───────────────────────────────────────
         
         wellness_frame = QFrame()
         wellness_frame.setObjectName("wellness")
         wellness_frame.setMinimumHeight(200)
+        wellness_frame.setMaximumHeight(600)
         wellness_frame.setStyleSheet(f"""                   
             background-color: {COLOR_BG_CARD}; 
             border-radius: 10px;
@@ -285,6 +299,8 @@ class PrepaDashboard(QWidget):
         rpe_frame = QFrame()
         rpe_frame.setObjectName("rpe")
         rpe_frame.setMinimumHeight(200)
+        rpe_frame.setMaximumHeight(600)
+
         rpe_frame.setStyleSheet(f"""
             QFrame#rpe {{
                 background-color: {COLOR_BG_CARD};
@@ -389,16 +405,70 @@ class PrepaDashboard(QWidget):
         # ── Ajout des frames ──────────────────────────────────
         wellness_rpe_layout.addWidget(wellness_frame)
         wellness_rpe_layout.addWidget(rpe_frame)
-        
-    # ── Widget Liste des joueurs ────────────────────────────────────────
-        yellow_frame = QFrame()
-        yellow_frame.setStyleSheet(
-            "background-color: #5c4a00; border-radius: 10px;"
-        )
-        yellow_frame.setMinimumHeight(200)
-        main_layout.addWidget(yellow_frame)
 
+    # ── Widget Liste des joueurs ────────────────────────────────────────
+        player_list_frame = QFrame()
+        player_list_frame.setObjectName("player_list")
+        player_list_frame.setMinimumHeight(200)
+        player_list_frame.setStyleSheet(f"""                   
+            background-color: {COLOR_BG_CARD}; 
+            border-radius: 10px;
+        """)
+        
+        player_list_layout = QVBoxLayout(player_list_frame)
+        player_list_layout.setContentsMargins(16, 16, 16, 16)
+        player_list_layout.setSpacing(12)
+
+        # Titre 
+        player_list_title = QLabel("Liste des Joueurs :")
+        player_list_title.setAlignment(Qt.AlignLeft)
+        player_list_title.setStyleSheet(f"""
+            color: {COLOR_TEXT_PRIMARY};
+            font-size: 20px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+        """)
+        player_list_layout.addWidget(player_list_title)
+        
+        
+        team = self._print_all_players_posts()
+        
+        gb_label = QLabel(f"Gardiens : {team[0]}")
+        att_label = QLabel(f"Attaquants : {team[1]}")
+        def_label = QLabel(f"Défenseurs : {team[2]}")
+        
+        player_role_layout = QHBoxLayout()
+        player_list_layout.addLayout(player_role_layout)
+
+        player_role_layout.addWidget(gb_label, alignment=Qt.AlignCenter)
+        player_role_layout.addWidget(att_label, alignment=Qt.AlignCenter)
+        player_role_layout.addWidget(def_label, alignment=Qt.AlignCenter)
+
+        
+        player_btn = QPushButton("Afficher")
+        player_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        player_btn.clicked.connect(self._print_all_players_posts)
+        
+        player_list_layout.addWidget(player_btn)
+        
+        player_layout.addWidget(player_list_frame)
+        
         
 def _refresh_wellness(self):
         """Recharge les données depuis la BDD — appelé au retour sur le dashboard."""
         self.__init__(self.user)
+        
+

@@ -111,7 +111,7 @@ def delete_player(player_id: int) -> bool:
     """
     Supprime un joueur par son id.
     Retourne True si la suppression a réussi.
-    ⚠️  Supprime aussi ses données wellness et RPE (CASCADE à gérer en app).
+    Supprime aussi ses données wellness et RPE (CASCADE à gérer en app).
     """
     conn = get_connection()
  
@@ -144,5 +144,13 @@ def get_player_count() -> int:
     """Retourne le nombre total de joueurs."""
     conn = get_connection()
     count = conn.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+    conn.close()
+    return count
+
+def get_player_count_post(poste: str) -> dict | None:
+    """Retourne le nombre de joueurs par postes.
+    """
+    conn = get_connection()
+    count = conn.execute(" SELECT COUNT (*) FROM players WHERE poste = ?", (poste,)).fetchone()[0]
     conn.close()
     return count

@@ -58,8 +58,8 @@ def seed_data():
     print("[DB] Insertion des données de test...")
 
     staff = [
-        ("Dupont", "Marc",  "prepa", "prepa@team.fr",  hash_password("prepa123")),
-        ("Martin", "Julie", "coach", "coach@team.fr",  hash_password("coach123")),
+        ("LE DUS", "Maxime",  "prepa", "prepa@team.fr",  hash_password("prepa123")),
+        ("DA COSTA", "Kévin", "coach", "coach@team.fr",  hash_password("coach123")),
     ]
     cursor.executemany(
         "INSERT INTO users (nom, prenom, role, email, password) VALUES (?,?,?,?,?)",
@@ -85,8 +85,8 @@ def seed_data():
         ("Le Lem",  "Paul",      19, "Attaquant",  "2006-06-24", 176, 76.0),
         ("Jribi Chauvière",  "Ewen",      70, "Défenseur",  "2007-03-09", 180, 82.0),
         ("Gire",  "Lucas",      90, "Attaquant",  "2007-03-03", 184, 71.0),
-        ("Ylonen",  "Sebastian",      37, "Gardien",  "1991-07-03", 186, 78.0),
         ("Richard",  "Olivier",      1, "Gardien", "1991-07-03", 188, 80),
+        ("Ylonen",  "Sebastian",      37, "Gardien",  "1991-07-03", 186, 78.0),
         ("Bazire",  "Pierre",      60, "Gardien", "2005-02-09", 178, 78),
     ]
     cursor.executemany(
