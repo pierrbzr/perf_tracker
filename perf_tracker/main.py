@@ -23,11 +23,13 @@ from ui.wellness.wellness_player_list import WellnessPlayerList
 from ui.rpe.rpe_player_list import RPEPlayerList
 from ui.grip.grip_player_list import GripPlayerList
 from ui.poids.poids_player_list import PoidsPlayerList
+from ui.players.player_list import PlayerList
 
 from ui.wellness.wellness_form import WellnessForm
 from ui.rpe.rpe_form import RPEForm
 from ui.grip.grip_form import GripForm
 from ui.poids.poids_form import PoidsForm
+from ui.players.player_form import PlayerForm
 
 
 class MainWindow(QMainWindow):
@@ -88,6 +90,7 @@ class MainWindow(QMainWindow):
         self._prepa_screen.go_to_rpe.connect(self._show_rpe_player_list)
         self._prepa_screen.go_to_grip.connect(self._show_grip_player_list)
         self._prepa_screen.go_to_poids.connect(self._show_poids_player_list)
+        self._prepa_screen.go_to_players.connect(self._show_player_list)
         self.setCentralWidget(self._prepa_screen)
         
         self.setWindowTitle(
@@ -174,7 +177,26 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             f"Perf Tracker — Poids | {player['prenom']} {player['nom']}"
         )
- 
+        
+# ── Routing Liste de joueurs ─────────────────────────────────────
+
+    def _show_player_list(self):
+        screen = PlayerList()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        screen.player_selected.connect(self._show_players)
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Liste des Joueurs")
+        
+    def _show_players(self, player: dict):
+        screen = PlayerForm(player)
+        screen.back_requested.connect(self._show_player_list)
+        self.setCentralWidget(screen)
+        self.setWindowTitle(
+            f"Perf Tracker — Grip | {player['prenom']} {player['nom']}"
+        )
+
+# ── Routing Dashboard ─────────────────────────────────────
+
     def _on_back_to_dashboard(self):
         """Retour au dashboard → recrée avec données fraîches."""
         self._show_prepa_dashboard()

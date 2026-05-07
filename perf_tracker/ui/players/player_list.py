@@ -1,6 +1,6 @@
 """
-ui/grip_player_list.py
-Liste des joueurs pour sélectionner qui remplit son grip.
+ui/player_list.py
+Liste des joueurs  et affichage des données.
 """
 
 from PyQt5.QtWidgets import (
@@ -17,14 +17,17 @@ from assets.theme import (
     BORDER_RADIUS
 )
 from models.player import get_all_players
+from models.wellness import has_wellness_submitted_today
+from models.rpe import has_rpe_submitted_today
 from models.grip import has_grip_submitted_today
+from models.poids import has_poids_submitted_today
 
-class GripPlayerList(QWidget):
+class PlayerList(QWidget):
     """
-    Liste des joueurs avec indication si grip déjà saisi aujourd'hui.
-    Émet grip_selected(player_dict) au clic sur un joueur.
+    Liste des joueurs avec indication si les paramètres ont déjà été saisi aujourd'hui.
+    Émet player_selected(player_dict) au clic sur un joueur.
     """
-    grip_selected = pyqtSignal(dict)
+    player_selected = pyqtSignal(dict)
     back_requested  = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -60,7 +63,7 @@ class GripPlayerList(QWidget):
         """)
         back_btn.clicked.connect(self.back_requested.emit)
 
-        title = QLabel("Grip — Sélectionner un joueur")
+        title = QLabel("Liste — Sélectionner un joueur")
         title.setStyleSheet(f"""
             color: {COLOR_GREEN};
             font-size: {FONT_SIZE_TITLE}px;
@@ -95,23 +98,6 @@ class GripPlayerList(QWidget):
         header.addWidget(self.refresh_btn)
         main_layout.addLayout(header)
 
-        # ── Légende ──
-        legend = QHBoxLayout()
-        legend.setSpacing(16)
-        for color, texte in [
-            (COLOR_GOOD,    "Grip saisi"),
-            (COLOR_DANGER,  "Non saisi"),
-        ]:
-            lbl = QLabel(texte)
-            lbl.setStyleSheet(f"""
-                color: {color};
-                font-size: {FONT_SIZE_SMALL}px;
-                font-family: "{FONT_FAMILY}";
-            """)
-            legend.addWidget(lbl)
-        legend.addStretch()
-        main_layout.addLayout(legend)
-
         # ── Liste joueurs scrollable ──
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -138,13 +124,16 @@ class GripPlayerList(QWidget):
         players = get_all_players()
 
         for player in players:
+            wellness_submitted = has_wellness_submitted_today(player["id"])
+            rpe_submitted = has_rpe_submitted_today(player["id"])
             grip_submitted = has_grip_submitted_today(player["id"])
-            card = self._make_player_card(player, grip_submitted)
+            poids_submitted = has_poids_submitted_today(player["id"])
+            card = self._make_player_card(player, wellness_submitted, rpe_submitted, grip_submitted, poids_submitted)
             self.list_layout.addWidget(card)
 
         self.list_layout.addStretch()
 
-    def _make_player_card(self, player: dict, grip_submitted: bool) -> QFrame:
+    def _make_player_card(self, player: dict, wellness_submitted: bool, rpe_submitted: bool, grip_submitted: bool, poids_submitted: bool) -> QFrame:
         """Crée une carte joueur cliquable."""
         card = QFrame()
         card.setFixedHeight(72)
@@ -209,9 +198,37 @@ class GripPlayerList(QWidget):
         right_layout = QHBoxLayout()
         right_layout.setSpacing(12)
 
+        # Statut Wellness
+        w_color = COLOR_GOOD if wellness_submitted else COLOR_DANGER
+        w_statut = QLabel("Wellness")
+        w_statut.setFixedWidth(80)
+        w_statut.setAlignment(Qt.AlignCenter)
+        w_statut.setStyleSheet(f"""
+            color: {w_color};
+            font-size: {FONT_SIZE_SMALL}px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
+        
+        # Statut RPE
+        r_color = COLOR_GOOD if rpe_submitted else COLOR_DANGER
+        r_statut = QLabel("RPE")
+        r_statut.setFixedWidth(80)
+        r_statut.setAlignment(Qt.AlignCenter)
+        r_statut.setStyleSheet(f"""
+            color: {r_color};
+            font-size: {FONT_SIZE_SMALL}px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
+        
         # Statut Grip
         g_color = COLOR_GOOD if grip_submitted else COLOR_DANGER
-        g_statut = QLabel("Grip ✓" if grip_submitted else "Grip ✗")
+        g_statut = QLabel("Grip")
         g_statut.setFixedWidth(80)
         g_statut.setAlignment(Qt.AlignCenter)
         g_statut.setStyleSheet(f"""
@@ -222,12 +239,26 @@ class GripPlayerList(QWidget):
             border: none;
             background: transparent;
         """)
+        
+        # Statut Poids
+        p_color = COLOR_GOOD if poids_submitted else COLOR_DANGER
+        p_statut = QLabel("Poids")
+        p_statut.setFixedWidth(80)
+        p_statut.setAlignment(Qt.AlignCenter)
+        p_statut.setStyleSheet(f"""
+            color: {p_color};
+            font-size: {FONT_SIZE_SMALL}px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
 
-        # Bouton Grip
-        g_btn = QPushButton("Grip")
-        g_btn.setFixedSize(80, 36)
-        g_btn.setCursor(Qt.PointingHandCursor)
-        g_btn.setStyleSheet(f"""
+        # Bouton Affichage du Joueur
+        a_btn = QPushButton("Afficher Profil")
+        a_btn.setFixedSize(80, 36)
+        a_btn.setCursor(Qt.PointingHandCursor)
+        a_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLOR_GREEN};
@@ -236,6 +267,8 @@ class GripPlayerList(QWidget):
                 font-size: {FONT_SIZE_SMALL}px;
                 font-weight: 600;
                 font-family: "{FONT_FAMILY}";
+                min-width: 80px;
+                padding: 6px 12px;
             }}
             QPushButton:hover {{
                 background-color: {COLOR_GREEN};
@@ -243,10 +276,13 @@ class GripPlayerList(QWidget):
             }}
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
-        g_btn.clicked.connect(lambda: self.grip_selected.emit(player))
+        a_btn.clicked.connect(lambda: self.player_selected.emit(player))
 
+        right_layout.addWidget(w_statut)
+        right_layout.addWidget(r_statut)
         right_layout.addWidget(g_statut)
-        right_layout.addWidget(g_btn)
+        right_layout.addWidget(p_statut)
+        right_layout.addWidget(a_btn)
 
         layout.addLayout(right_layout)
 

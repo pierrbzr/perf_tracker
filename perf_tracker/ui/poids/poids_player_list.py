@@ -22,7 +22,7 @@ from models.poids import has_poids_submitted_today
 class PoidsPlayerList(QWidget):
     """
     Liste des joueurs avec indication si poids déjà saisi aujourd'hui.
-    Émet player_selected(player_dict) au clic sur un joueur.
+    Émet poids_selected(player_dict) au clic sur un joueur.
     """
     poids_selected = pyqtSignal(dict)
     back_requested  = pyqtSignal()

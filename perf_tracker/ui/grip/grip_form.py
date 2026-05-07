@@ -224,6 +224,18 @@ class GripForm(QWidget):
                 background: transparent;
             """)
             self.error_label.show()
+            
+    def _on_value_selected(self, key: str, value: int):
+        """Met à jour la valeur sélectionnée et rafraîchit les boutons."""
+        self.values[key] = value
+
+        # Rafraîchir les boutons du groupe
+        for btn in self.btn_groups[key]:
+            v = btn.property("value")
+            if v == value:
+                btn.setStyleSheet(self._btn_style_active())
+            else:
+                btn.setStyleSheet(self._btn_style_inactive())
 
     def _on_save(self):
         """Valide et enregistre le grip en base."""

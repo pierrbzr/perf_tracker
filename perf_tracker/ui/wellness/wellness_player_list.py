@@ -22,7 +22,7 @@ from models.wellness import has_wellness_submitted_today
 class WellnessPlayerList(QWidget):
     """
     Liste des joueurs avec indication si wellness déjà saisi aujourd'hui.
-    Émet player_selected(player_dict) au clic sur un joueur.
+    Émet wellness_selected(player_dict) au clic sur un joueur.
     """
     wellness_selected = pyqtSignal(dict)
     back_requested  = pyqtSignal()

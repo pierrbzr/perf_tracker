@@ -59,8 +59,8 @@ FONT_SIZE_LABEL     = 12
 # DIMENSIONS
 # ============================================================
 
-WINDOW_WIDTH        = 1280
-WINDOW_HEIGHT       = 800
+WINDOW_WIDTH        = 980
+WINDOW_HEIGHT       = 600
 SIDEBAR_WIDTH       = 220
 BORDER_RADIUS       = 8
 PADDING_CARD        = 16

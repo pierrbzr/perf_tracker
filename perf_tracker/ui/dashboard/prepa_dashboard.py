@@ -15,7 +15,7 @@ from models.rpe import get_team_rpe_today, get_submission_rpe_rate_today
 from models.grip import get_team_grip_today, get_submission_grip_rate_today
 from models.poids import get_team_poids_today, get_submission_poids_rate_today
 
-from numpy import mean # type: ignore
+from numpy import mean
 
 from assets.theme import (
     COLOR_GREEN, COLOR_RED, COLOR_BG_CARD, COLOR_BG_INPUT,
@@ -30,6 +30,7 @@ class PrepaDashboard(QWidget):
     go_to_rpe = pyqtSignal()
     go_to_grip = pyqtSignal()
     go_to_poids = pyqtSignal()
+    go_to_players = pyqtSignal()
     logout_requested = pyqtSignal()
 
     def __init__(self, user: dict, parent=None):
@@ -115,7 +116,7 @@ class PrepaDashboard(QWidget):
                 grip.append(joueur['grip'])
                 
         if not grip:
-            return ["-", "-"]
+            return ["-", "-", "-"]
 
         return [
             round(max(grip), 2),
@@ -141,7 +142,7 @@ class PrepaDashboard(QWidget):
                 poids.append(joueur['poids'])
                 
         if not poids:
-            return ["-", "-"]
+            return ["-", "-", "-"]
 
         return [
             round(max(poids), 2),
@@ -700,8 +701,7 @@ class PrepaDashboard(QWidget):
             }}            
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
-        #player_btn.clicked.connect()
-        
+        player_btn.clicked.connect(self.go_to_players.emit)
         main_layout.addWidget(player_btn)        
         
 def _refresh_wellness(self):

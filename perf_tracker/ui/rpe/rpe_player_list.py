@@ -22,7 +22,7 @@ from models.rpe import has_rpe_submitted_today
 class RPEPlayerList(QWidget):
     """
     Liste des joueurs avec indication si RPE déjà saisi aujourd'hui.
-    Émet player_selected(player_dict) au clic sur un joueur.
+    Émet rpe_selected(player_dict) au clic sur un joueur.
     """
     rpe_selected = pyqtSignal(dict)
     back_requested  = pyqtSignal()
