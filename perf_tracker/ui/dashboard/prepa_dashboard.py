@@ -12,7 +12,8 @@ from PyQt5.QtCore import Qt, pyqtSignal
 
 from models.wellness import get_team_wellness_today, get_submission_wellness_rate_today
 from models.rpe import get_team_rpe_today, get_submission_rpe_rate_today
-from models.player import get_player_count_post, get_all_players
+from models.grip import get_team_grip_today, get_submission_grip_rate_today
+from models.poids import get_team_poids_today, get_submission_poids_rate_today
 
 from numpy import mean # type: ignore
 
@@ -25,7 +26,10 @@ from assets.theme import (
 )
 
 class PrepaDashboard(QWidget):
-    go_to_wellness_rpe = pyqtSignal()
+    go_to_wellness = pyqtSignal()
+    go_to_rpe = pyqtSignal()
+    go_to_grip = pyqtSignal()
+    go_to_poids = pyqtSignal()
     logout_requested = pyqtSignal()
 
     def __init__(self, user: dict, parent=None):
@@ -64,6 +68,15 @@ class PrepaDashboard(QWidget):
         round(mean(stress), 2),
         round(mean(score_total), 2),
     ]
+        
+    def calc_fill_rate_wellness(self) -> float:
+        wellness_rate = get_submission_wellness_rate_today()
+        
+        if (wellness_rate["rate"]) is None:
+            return ["-"]
+        else:
+            return str(wellness_rate["rate"]) + "%"
+
     
     def calc_average_rpe(self):
         team_rpe = get_team_rpe_today()
@@ -83,16 +96,7 @@ class PrepaDashboard(QWidget):
             round(mean(rpe_m), 2),
             round(mean(rpe_c), 2),
         ]
-    
-    def calc_fill_rate_wellness(self) -> float:
-        wellness_rate = get_submission_wellness_rate_today()
-        
-        if (wellness_rate["rate"]) is None:
-            return ["-"]
-        else:
-            return str(wellness_rate["rate"]) + "%"
-
-        
+            
     def calc_fill_rate_rpe(self) -> float:
         rpe_rate = get_submission_rpe_rate_today()
         
@@ -101,21 +105,71 @@ class PrepaDashboard(QWidget):
         else:
             return str(rpe_rate["rate"]) + "%"
         
-    def _print_all_players_posts(self) -> list:
-        gardiens = get_player_count_post("Gardien")
-        attaquants = get_player_count_post("Attaquant")
-        defenseurs = get_player_count_post("Défenseur")
+    def calc_average_grip(self):
+        team_grip = get_team_grip_today()
+        
+        grip = []
+                
+        for joueur in team_grip:
+            if joueur['grip'] is not None:
+                grip.append(joueur['grip'])
+                
+        if not grip:
+            return ["-", "-"]
 
-        team = [gardiens, attaquants, defenseurs]
-        print(team)
-        return team
+        return [
+            round(max(grip), 2),
+            round(min(grip), 2),
+            round(mean(grip), 2),
+        ]
+            
+    def calc_fill_rate_grip(self) -> float:
+        grip_rate = get_submission_grip_rate_today()
+        
+        if (grip_rate["rate"]) is None:
+            return ["-"]
+        else:
+            return str(grip_rate["rate"]) + "%"
+        
+    def calc_average_poids(self):
+        team_poids = get_team_poids_today()
+        
+        poids = []
+                
+        for joueur in team_poids:
+            if joueur['poids'] is not None:
+                poids.append(joueur['poids'])
+                
+        if not poids:
+            return ["-", "-"]
+
+        return [
+            round(max(poids), 2),
+            round(min(poids), 2),
+            round(mean(poids), 2),        ]
+            
+    def calc_fill_rate_poids(self) -> float:
+        poids_rate = get_submission_poids_rate_today()
+        
+        if (poids_rate["rate"]) is None:
+            return ["-"]
+        else:
+            return str(poids_rate["rate"]) + "%"
+
         
     def _build_ui(self):
 
         average_wellness = self.calc_average_wellness()
-        average_rpe = self.calc_average_rpe()
         fill_rate_wellness = self.calc_fill_rate_wellness()
+
+        average_rpe = self.calc_average_rpe()
         fill_rate_rpe = self.calc_fill_rate_rpe()
+        
+        average_grip = self.calc_average_grip()
+        fill_rate_grip = self.calc_fill_rate_grip()
+        
+        average_poids = self.calc_average_poids()
+        fill_rate_poids = self.calc_fill_rate_poids()
         
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(24, 24, 24, 24)
@@ -144,11 +198,14 @@ class PrepaDashboard(QWidget):
  # ── Layout Wellness / RPE ───────────────────────────────────────
  
         wellness_rpe_layout = QHBoxLayout()
+        grip_poids_layout = QHBoxLayout()
         player_layout = QHBoxLayout()
         wellness_rpe_layout.setSpacing(16)
+        grip_poids_layout.setSpacing(16)
         player_layout.setSpacing(16)
         main_layout.addLayout(wellness_rpe_layout)
-        main_layout.addLayout(player_layout)
+        main_layout.addLayout(grip_poids_layout)
+        #main_layout.addLayout(player_layout)
 
  # ── Widget Wellness ───────────────────────────────────────
         
@@ -163,7 +220,7 @@ class PrepaDashboard(QWidget):
 
         wellness_layout = QVBoxLayout(wellness_frame)
         wellness_layout.setContentsMargins(16, 16, 16, 16)
-        wellness_layout.setSpacing(12)
+        wellness_layout.setSpacing(6)
         
         # Titre
         wellness_title = QLabel("Wellness : ")
@@ -208,7 +265,6 @@ class PrepaDashboard(QWidget):
             val.setStyleSheet(value_style)
  
             row.addWidget(lbl)
-            row.addStretch()
             row.addWidget(val)
  
             wellness_layout.addLayout(row)
@@ -292,10 +348,10 @@ class PrepaDashboard(QWidget):
             QPushButton:hover {{ background-color: #00C962; }}
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
-        wellness_btn.clicked.connect(self.go_to_wellness_rpe.emit)
+        wellness_btn.clicked.connect(self.go_to_wellness.emit)
         wellness_layout.addWidget(wellness_btn)
 
-        # ── Widget RPE ────────────────────────────────────────
+# ── Widget RPE ────────────────────────────────────────
         rpe_frame = QFrame()
         rpe_frame.setObjectName("rpe")
         rpe_frame.setMinimumHeight(200)
@@ -399,54 +455,101 @@ class PrepaDashboard(QWidget):
             QPushButton:hover {{ background-color: #00C962; }}
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
-        rpe_btn.clicked.connect(self.go_to_wellness_rpe.emit)
+        rpe_btn.clicked.connect(self.go_to_rpe.emit)
         rpe_layout.addWidget(rpe_btn)
-
-        # ── Ajout des frames ──────────────────────────────────
-        wellness_rpe_layout.addWidget(wellness_frame)
-        wellness_rpe_layout.addWidget(rpe_frame)
-
-    # ── Widget Liste des joueurs ────────────────────────────────────────
-        player_list_frame = QFrame()
-        player_list_frame.setObjectName("player_list")
-        player_list_frame.setMinimumHeight(200)
-        player_list_frame.setStyleSheet(f"""                   
-            background-color: {COLOR_BG_CARD}; 
-            border-radius: 10px;
-        """)
         
-        player_list_layout = QVBoxLayout(player_list_frame)
-        player_list_layout.setContentsMargins(16, 16, 16, 16)
-        player_list_layout.setSpacing(12)
+# ── Widget Grip ────────────────────────────────────────
+        grip_frame = QFrame()
+        grip_frame.setObjectName("grip")
+        grip_frame.setMinimumHeight(200)
+        grip_frame.setMaximumHeight(600)
 
-        # Titre 
-        player_list_title = QLabel("Liste des Joueurs :")
-        player_list_title.setAlignment(Qt.AlignLeft)
-        player_list_title.setStyleSheet(f"""
+        grip_frame.setStyleSheet(f"""
+            QFrame#grip {{
+                background-color: {COLOR_BG_CARD};
+                border-radius: 10px;
+            }}
+        """)
+
+        grip_layout = QVBoxLayout(grip_frame)
+        grip_layout.setContentsMargins(16, 16, 16, 16)
+        grip_layout.setSpacing(12)
+
+        grip_title = QLabel("Grip :")
+        grip_title.setStyleSheet(f"""
             color: {COLOR_TEXT_PRIMARY};
+            background-color: transparent;
             font-size: 20px;
             font-weight: 700;
             font-family: "{FONT_FAMILY}";
         """)
-        player_list_layout.addWidget(player_list_title)
+        grip_layout.addWidget(grip_title)
         
+        # Label Grip
+        label_style = f"""
+            color: {COLOR_TEXT_PRIMARY};
+            background-color: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: "{FONT_FAMILY}";
+        """
+        value_style = f"""
+            color: {COLOR_GREEN};
+            background-color: transparent;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+        """
         
-        team = self._print_all_players_posts()
-        
-        gb_label = QLabel(f"Gardiens : {team[0]}")
-        att_label = QLabel(f"Attaquants : {team[1]}")
-        def_label = QLabel(f"Défenseurs : {team[2]}")
-        
-        player_role_layout = QHBoxLayout()
-        player_list_layout.addLayout(player_role_layout)
+        for nom_label, valeur in [
+            ("Grip Max", average_grip[0]),
+            ("Grip Moyen", average_grip[2]),
+            ("Grip Min", average_grip[1]),
+        ]:
+            
+            row = QHBoxLayout()
+            row.setContentsMargins(4, 0, 4, 0)
+            
+            lbl = QLabel(nom_label)
+            lbl.setStyleSheet(label_style)
+            
+            val = QLabel(str(valeur))
+            val.setAlignment(Qt.AlignRight)
+            val.setStyleSheet(value_style)
+            
+            row.addWidget(lbl)
+            row.addWidget(val)
+            
+            grip_layout.addLayout(row)
+            grip_layout.addStretch(1)
 
-        player_role_layout.addWidget(gb_label, alignment=Qt.AlignCenter)
-        player_role_layout.addWidget(att_label, alignment=Qt.AlignCenter)
-        player_role_layout.addWidget(def_label, alignment=Qt.AlignCenter)
+        # Séparateur
+        grip_separator = QFrame()
+        grip_separator.setFixedHeight(1)
+        grip_separator.setStyleSheet("background-color: #2e3134;")
+        grip_layout.addWidget(grip_separator)
 
+        # Taux de remplissage Grip
+        grip_rate_row = QHBoxLayout()
+        grip_rate_row.setContentsMargins(4, 0, 4, 0)
         
-        player_btn = QPushButton("Afficher")
-        player_btn.setStyleSheet(f"""
+        grip_rate_lbl = QLabel("Taux de Remplissage")
+        grip_rate_lbl.setStyleSheet(label_style)
+        
+        grip_rate_val = QLabel(fill_rate_grip)
+        grip_rate_val.setAlignment(Qt.AlignRight)
+        grip_rate_val.setStyleSheet(value_style)
+        
+        grip_rate_row.addWidget(grip_rate_lbl)
+        grip_rate_row.addStretch()
+        grip_rate_row.addWidget(grip_rate_val)
+        grip_layout.addLayout(grip_rate_row)
+        grip_layout.addSpacing(12)
+
+        # Bouton grip
+        grip_btn = QPushButton("Gérer Grip")
+        grip_btn.setCursor(Qt.PointingHandCursor)
+        grip_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLOR_GREEN};
                 color: white;
@@ -460,12 +563,146 @@ class PrepaDashboard(QWidget):
             QPushButton:hover {{ background-color: #00C962; }}
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
-        player_btn.clicked.connect(self._print_all_players_posts)
+        grip_btn.clicked.connect(self.go_to_grip.emit)
+        grip_layout.addWidget(grip_btn)
         
-        player_list_layout.addWidget(player_btn)
+# ── Widget Poids ────────────────────────────────────────
+        poids_frame = QFrame()
+        poids_frame.setObjectName("poids")
+        poids_frame.setMinimumHeight(200)
+        poids_frame.setMaximumHeight(600)
+
+        poids_frame.setStyleSheet(f"""
+            QFrame#poids {{
+                background-color: {COLOR_BG_CARD};
+                border-radius: 10px;
+            }}
+        """)
+
+        poids_layout = QVBoxLayout(poids_frame)
+        poids_layout.setContentsMargins(16, 16, 16, 16)
+        poids_layout.setSpacing(12)
+
+        poids_title = QLabel("Poids :")
+        poids_title.setStyleSheet(f"""
+            color: {COLOR_TEXT_PRIMARY};
+            background-color: transparent;
+            font-size: 20px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+        """)
+        poids_layout.addWidget(poids_title)
         
-        player_layout.addWidget(player_list_frame)
+        # Label Poids
+        label_style = f"""
+            color: {COLOR_TEXT_PRIMARY};
+            background-color: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: "{FONT_FAMILY}";
+        """
+        value_style = f"""
+            color: {COLOR_GREEN};
+            background-color: transparent;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+        """
         
+        for nom_label, valeur in [
+            (f"Poids Max", average_poids[0]),
+            (f"Poids Moyen", average_poids[2]),
+            (f"Poids Min", average_poids[1]),
+        ]:
+            row = QHBoxLayout()
+            row.setContentsMargins(4, 0, 4, 0)
+            
+            lbl = QLabel(nom_label)
+            lbl.setStyleSheet(label_style)
+            
+            val = QLabel(str(valeur))
+            val.setAlignment(Qt.AlignRight)
+            val.setStyleSheet(value_style)
+            
+            row.addWidget(lbl)
+            row.addStretch()
+            row.addWidget(val)
+            
+            poids_layout.addLayout(row)
+            poids_layout.addStretch(1)
+
+        # Séparateur
+        poids_separator = QFrame()
+        poids_separator.setFixedHeight(1)
+        poids_separator.setStyleSheet("background-color: #2e3134;")
+        poids_layout.addWidget(poids_separator)
+
+        # Taux de remplissage Poids
+        poids_rate_row = QHBoxLayout()
+        poids_rate_row.setContentsMargins(4, 0, 4, 0)
+        
+        poids_rate_lbl = QLabel("Taux de Remplissage")
+        poids_rate_lbl.setStyleSheet(label_style)
+        
+        poids_rate_val = QLabel(fill_rate_poids)
+        poids_rate_val.setAlignment(Qt.AlignRight)
+        poids_rate_val.setStyleSheet(value_style)
+        
+        poids_rate_row.addWidget(poids_rate_lbl)
+        poids_rate_row.addStretch()
+        poids_rate_row.addWidget(poids_rate_val)
+        poids_layout.addLayout(poids_rate_row)
+        poids_layout.addSpacing(12)
+
+        # Bouton poids
+        poids_btn = QPushButton("Gérer Poids")
+        poids_btn.setCursor(Qt.PointingHandCursor)
+        poids_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        poids_btn.clicked.connect(self.go_to_poids.emit)
+        poids_layout.addWidget(poids_btn)
+
+# ── Ajout des frames ──────────────────────────────────
+        wellness_rpe_layout.addWidget(wellness_frame)
+        wellness_rpe_layout.addWidget(rpe_frame)
+        grip_poids_layout.addWidget(grip_frame)
+        grip_poids_layout.addWidget(poids_frame)
+        
+# ── Bouton de redirection vers la Liste des Joueurs ──────────────────────────────────
+
+        player_btn = QPushButton("Liste des Joueurs")
+        player_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: white;
+                border: 2px solid {COLOR_GREEN};
+                border-radius: {BORDER_RADIUS}px;
+                padding: 10px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+            }}
+           QPushButton:hover {{
+                background-color: {COLOR_GREEN};
+                color: white;
+            }}            
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        #player_btn.clicked.connect()
+        
+        main_layout.addWidget(player_btn)        
         
 def _refresh_wellness(self):
         """Recharge les données depuis la BDD — appelé au retour sur le dashboard."""

@@ -1,6 +1,6 @@
 """
-ui/wellness_rpe_player_list.py
-Liste des joueurs pour sélectionner qui remplit son wellness et son rpe.
+ui/rpe_player_list.py
+Liste des joueurs pour sélectionner qui remplit son rpe.
 """
 
 from PyQt5.QtWidgets import (
@@ -17,15 +17,13 @@ from assets.theme import (
     BORDER_RADIUS
 )
 from models.player import get_all_players
-from models.wellness import has_wellness_submitted_today
 from models.rpe import has_rpe_submitted_today
 
-class WellnessRPEPlayerList(QWidget):
+class RPEPlayerList(QWidget):
     """
-    Liste des joueurs avec indication si wellness ou RPE déjà saisi aujourd'hui.
+    Liste des joueurs avec indication si RPE déjà saisi aujourd'hui.
     Émet player_selected(player_dict) au clic sur un joueur.
     """
-    wellness_selected = pyqtSignal(dict)
     rpe_selected = pyqtSignal(dict)
     back_requested  = pyqtSignal()
 
@@ -62,7 +60,7 @@ class WellnessRPEPlayerList(QWidget):
         """)
         back_btn.clicked.connect(self.back_requested.emit)
 
-        title = QLabel("Wellness & RPE — Sélectionner un joueur")
+        title = QLabel("RPE — Sélectionner un joueur")
         title.setStyleSheet(f"""
             color: {COLOR_GREEN};
             font-size: {FONT_SIZE_TITLE}px;
@@ -101,7 +99,7 @@ class WellnessRPEPlayerList(QWidget):
         legend = QHBoxLayout()
         legend.setSpacing(16)
         for color, texte in [
-            (COLOR_GOOD,    "Wellness/RPE saisi"),
+            (COLOR_GOOD,    "RPE saisi"),
             (COLOR_DANGER,  "Non saisi"),
         ]:
             lbl = QLabel(texte)
@@ -127,8 +125,6 @@ class WellnessRPEPlayerList(QWidget):
 
         scroll.setWidget(self.list_widget)
         main_layout.addWidget(scroll)
-        
-        
 
         self._load_players()
 
@@ -142,14 +138,13 @@ class WellnessRPEPlayerList(QWidget):
         players = get_all_players()
 
         for player in players:
-            wellness_submitted = has_wellness_submitted_today(player["id"])
             rpe_submitted = has_rpe_submitted_today(player["id"])
-            card = self._make_player_card(player, wellness_submitted, rpe_submitted)
+            card = self._make_player_card(player, rpe_submitted)
             self.list_layout.addWidget(card)
 
         self.list_layout.addStretch()
 
-    def _make_player_card(self, player: dict, wellness_submitted: bool, rpe_submitted: bool) -> QFrame:
+    def _make_player_card(self, player: dict, rpe_submitted: bool) -> QFrame:
         """Crée une carte joueur cliquable."""
         card = QFrame()
         card.setFixedHeight(72)
@@ -214,22 +209,7 @@ class WellnessRPEPlayerList(QWidget):
         right_layout = QHBoxLayout()
         right_layout.setSpacing(12)
 
-        # Statut Wellness
-        w_color = COLOR_GOOD if wellness_submitted else COLOR_DANGER
-        w_statut = QLabel("Wellness ✓" if wellness_submitted else "Wellness ✗")
-        w_statut.setFixedWidth(80)
-        w_statut.setAlignment(Qt.AlignCenter)
-        w_statut.setStyleSheet(f"""
-            color: {w_color};
-            font-size: {FONT_SIZE_SMALL}px;
-            font-weight: 700;
-            font-family: "{FONT_FAMILY}";
-            border: none;
-            background: transparent;
-        """)
-
         # Statut RPE
-        rpe_submitted = has_rpe_submitted_today(player["id"])
         r_color = COLOR_GOOD if rpe_submitted else COLOR_DANGER
         r_statut = QLabel("RPE ✓" if rpe_submitted else "RPE ✗")
         r_statut.setFixedWidth(80)
@@ -242,28 +222,6 @@ class WellnessRPEPlayerList(QWidget):
             border: none;
             background: transparent;
         """)
-
-        # Bouton Wellness
-        w_btn = QPushButton("Wellness")
-        w_btn.setFixedSize(100, 36)
-        w_btn.setCursor(Qt.PointingHandCursor)
-        w_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: transparent;
-                color: {COLOR_GREEN};
-                border: 2px solid {COLOR_GREEN};
-                border-radius: {BORDER_RADIUS}px;
-                font-size: {FONT_SIZE_SMALL}px;
-                font-weight: 600;
-                font-family: "{FONT_FAMILY}";
-            }}
-            QPushButton:hover {{
-                background-color: {COLOR_GREEN};
-                color: white;
-            }}            
-            QPushButton:pressed {{ background-color: #007A3D; }}
-        """)
-        w_btn.clicked.connect(lambda: self.wellness_selected.emit(player))
 
         # Bouton RPE
         r_btn = QPushButton("RPE")
@@ -287,9 +245,7 @@ class WellnessRPEPlayerList(QWidget):
         """)
         r_btn.clicked.connect(lambda: self.rpe_selected.emit(player))
 
-        right_layout.addWidget(w_statut)
         right_layout.addWidget(r_statut)
-        right_layout.addWidget(w_btn)
         right_layout.addWidget(r_btn)
 
         layout.addLayout(right_layout)

@@ -63,7 +63,35 @@ CREATE TABLE IF NOT EXISTS rpe (
 );
 
 -- ============================================================
+-- GRIP 
+-- Valeur réelle
+-- ============================================================
+CREATE TABLE IF NOT EXISTS grip (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id       INTEGER NOT NULL REFERENCES players(id),
+    date            TEXT NOT NULL,
+    grip            DECIMAL NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(player_id, date)
+);
+
+-- ============================================================
+-- POIDS 
+-- Valeur réelle
+-- ============================================================
+CREATE TABLE IF NOT EXISTS poids (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id       INTEGER NOT NULL REFERENCES players(id),
+    date            TEXT NOT NULL,
+    poids            DECIMAL NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(player_id, date)
+);
+
+-- ============================================================
 -- INDEX pour accélérer les requêtes fréquentes
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_wellness_player_date ON wellness(player_id, date);
 CREATE INDEX IF NOT EXISTS idx_rpe_player_date ON rpe(player_id, date);
+CREATE INDEX IF NOT EXISTS idx_grip_player_date ON grip(player_id, date);
+CREATE INDEX IF NOT EXISTS idx_poids_player_date ON poids(player_id, date);

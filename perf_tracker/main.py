@@ -14,12 +14,20 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 from assets.theme import STYLESHEET, WINDOW_WIDTH, WINDOW_HEIGHT, COLOR_BG_DARK
 from database.db import init_db, seed_data
 from database.session import save_session, load_session, clear_session
+
 from ui.login import LoginScreen
 from ui.dashboard.prepa_dashboard import PrepaDashboard
 from ui.dashboard.coach_dashboard import CoachDashboard
-from ui.wellness_rpe_player_list import WellnessRPEPlayerList
-from ui.wellness_form import WellnessForm
-from ui.rpe_form import RPEForm
+
+from ui.wellness.wellness_player_list import WellnessPlayerList
+from ui.rpe.rpe_player_list import RPEPlayerList
+from ui.grip.grip_player_list import GripPlayerList
+from ui.poids.poids_player_list import PoidsPlayerList
+
+from ui.wellness.wellness_form import WellnessForm
+from ui.rpe.rpe_form import RPEForm
+from ui.grip.grip_form import GripForm
+from ui.poids.poids_form import PoidsForm
 
 
 class MainWindow(QMainWindow):
@@ -76,7 +84,10 @@ class MainWindow(QMainWindow):
         user = user or self._current_user
         self._prepa_screen = PrepaDashboard(user)
         self._prepa_screen.logout_requested.connect(self._on_logout)
-        self._prepa_screen.go_to_wellness_rpe.connect(self._show_wellness_rpe_player_list)
+        self._prepa_screen.go_to_wellness.connect(self._show_wellness_player_list)
+        self._prepa_screen.go_to_rpe.connect(self._show_rpe_player_list)
+        self._prepa_screen.go_to_grip.connect(self._show_grip_player_list)
+        self._prepa_screen.go_to_poids.connect(self._show_poids_player_list)
         self.setCentralWidget(self._prepa_screen)
         
         self.setWindowTitle(
@@ -92,32 +103,76 @@ class MainWindow(QMainWindow):
             f"Perf Tracker — Coach | {user['prenom']} {user['nom']}"
         )
 
-    # ── Routing Wellness & RPE ─────────────────────────────────────
- 
-    def _show_wellness_rpe_player_list(self):
-        screen = WellnessRPEPlayerList()
+# ── Routing Wellness ─────────────────────────────────────
+
+    def _show_wellness_player_list(self):
+        screen = WellnessPlayerList()
         screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
         screen.wellness_selected.connect(self._show_wellness_form)
-        screen.rpe_selected.connect(self._show_rpe_form)
         self.setCentralWidget(screen)
         self.setWindowTitle("Perf Tracker — Wellness")
- 
+        
     def _show_wellness_form(self, player: dict):
         screen = WellnessForm(player)
-        screen.back_requested.connect(self._show_wellness_rpe_player_list)
-        screen.wellness_saved.connect(self._show_wellness_rpe_player_list)
-        self.setCentralWidget(screen)
-        self.setWindowTitle(
-            f"Perf Tracker — Wellness & RPE | {player['prenom']} {player['nom']}"
-        )
-        
-    def _show_rpe_form(self, player: dict):
-        screen = RPEForm(player)
-        screen.back_requested.connect(self._show_wellness_rpe_player_list)
-        screen.rpe_saved.connect(self._show_wellness_rpe_player_list)
+        screen.back_requested.connect(self._show_wellness_player_list)
+        screen.wellness_saved.connect(self._show_wellness_player_list)
         self.setCentralWidget(screen)
         self.setWindowTitle(
             f"Perf Tracker — Wellness | {player['prenom']} {player['nom']}"
+        )
+
+# ── Routing RPE ─────────────────────────────────────
+
+    def _show_rpe_player_list(self):
+        screen = RPEPlayerList()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        screen.rpe_selected.connect(self._show_rpe_form)
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — RPE")
+        
+    def _show_rpe_form(self, player: dict):
+        screen = RPEForm(player)
+        screen.back_requested.connect(self._show_rpe_player_list)
+        screen.rpe_saved.connect(self._show_rpe_player_list)
+        self.setCentralWidget(screen)
+        self.setWindowTitle(
+            f"Perf Tracker — RPE | {player['prenom']} {player['nom']}"
+        )
+
+# ── Routing Grip ─────────────────────────────────────
+
+    def _show_grip_player_list(self):
+        screen = GripPlayerList()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        screen.grip_selected.connect(self._show_grip_form)
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Grip")
+        
+    def _show_grip_form(self, player: dict):
+        screen = GripForm(player)
+        screen.back_requested.connect(self._show_grip_player_list)
+        screen.grip_saved.connect(self._show_grip_player_list)
+        self.setCentralWidget(screen)
+        self.setWindowTitle(
+            f"Perf Tracker — Grip | {player['prenom']} {player['nom']}"
+        )
+
+# ── Routing Poids ───────────────────────────────────── 
+
+    def _show_poids_player_list(self):
+        screen = PoidsPlayerList()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        screen.poids_selected.connect(self._show_poids_form)
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Poids")
+    
+    def _show_poids_form(self, player: dict):
+        screen = PoidsForm(player)
+        screen.back_requested.connect(self._show_poids_player_list)
+        screen.poids_saved.connect(self._show_poids_player_list)
+        self.setCentralWidget(screen)
+        self.setWindowTitle(
+            f"Perf Tracker — Poids | {player['prenom']} {player['nom']}"
         )
  
     def _on_back_to_dashboard(self):

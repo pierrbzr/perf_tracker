@@ -132,7 +132,43 @@ def seed_data():
            VALUES (?, ?, ?, ?)""",
         rpe_data
     )
- 
+    
+    # ── Grip de test (aujourd'hui) ──
+    grip_data = [
+        (1, today, 45.4),
+        (2, today, 44.5),
+        (3, today, 54.4),
+        (4, today, 56.2),
+        (5, today, 61.7),
+        (6, today, 49.2),
+        (7, today, 57.6),
+        (8, today, 59.2),
+    ]
+    cursor.executemany(
+        """INSERT OR IGNORE INTO grip
+           (player_id, date, grip)
+           VALUES (?, ?, ?)""",
+        grip_data
+    )
+    
+    # ── poids de test (aujourd'hui) ──
+    poids_data = [
+        (1, today, 78.5),
+        (2, today, 82.0),
+        (3, today, 70.0),
+        (4, today, 76.5),
+        (5, today, 74.2),
+        (6, today, 92.1),
+        (7, today, 85.4),
+        (8, today, 69.3),
+    ]
+    cursor.executemany(
+        """INSERT OR IGNORE INTO poids
+           (player_id, date, poids)
+           VALUES (?, ?, ?)""",
+        poids_data
+    )
+
     conn.commit()
     conn.close()
     print("[DB] Données de test insérées.")
