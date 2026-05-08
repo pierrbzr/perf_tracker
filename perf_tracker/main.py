@@ -24,6 +24,7 @@ from ui.rpe.rpe_player_list import RPEPlayerList
 from ui.grip.grip_player_list import GripPlayerList
 from ui.poids.poids_player_list import PoidsPlayerList
 from ui.players.player_list import PlayerList
+from ui.graphs.graphs import Graphs
 
 from ui.wellness.wellness_form import WellnessForm
 from ui.rpe.rpe_form import RPEForm
@@ -91,6 +92,7 @@ class MainWindow(QMainWindow):
         self._prepa_screen.go_to_grip.connect(self._show_grip_player_list)
         self._prepa_screen.go_to_poids.connect(self._show_poids_player_list)
         self._prepa_screen.go_to_players.connect(self._show_player_list)
+        self._prepa_screen.go_to_graphs.connect(self._show_graphs_list)
         self.setCentralWidget(self._prepa_screen)
         
         self.setWindowTitle(
@@ -194,6 +196,15 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             f"Perf Tracker — Grip | {player['prenom']} {player['nom']}"
         )
+        
+# ── Routing Graphiques Dashboard ─────────────────────────────────────
+
+    def _show_graphs_list(self):
+        screen = Graphs()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Graphiques")
+        
 
 # ── Routing Dashboard ─────────────────────────────────────
 

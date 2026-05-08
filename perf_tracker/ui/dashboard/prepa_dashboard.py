@@ -31,6 +31,7 @@ class PrepaDashboard(QWidget):
     go_to_grip = pyqtSignal()
     go_to_poids = pyqtSignal()
     go_to_players = pyqtSignal()
+    go_to_graphs = pyqtSignal()
     logout_requested = pyqtSignal()
 
     def __init__(self, user: dict, parent=None):
@@ -332,7 +333,7 @@ class PrepaDashboard(QWidget):
         wellness_layout.addLayout(wellness_rate_row)
         wellness_layout.addSpacing(8)
 
-        # Bouton
+        # Bouton Wellness
         wellness_btn = QPushButton("Gérer Wellness")
         wellness_btn.setCursor(Qt.PointingHandCursor)
         wellness_btn.setStyleSheet(f"""
@@ -702,7 +703,40 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         player_btn.clicked.connect(self.go_to_players.emit)
-        main_layout.addWidget(player_btn)        
+
+# ── Bouton de redirection vers les graphiques de données Wellness/RPE/Grip/Poids ──────────────────────────────────
+
+        graph_btn = QPushButton("Graphiques")
+        graph_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: white;
+                border: 2px solid {COLOR_GREEN};
+                border-radius: {BORDER_RADIUS}px;
+                padding: 10px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+            }}
+           QPushButton:hover {{
+                background-color: {COLOR_GREEN};
+                color: white;
+            }}            
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        graph_btn.clicked.connect(self.go_to_graphs.emit)
+        
+# ── Organisation des boutons ──────────────────────────────────
+
+        btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(8, 8, 8, 8)
+
+        btn_layout.addWidget(graph_btn) 
+        btn_layout.addWidget(player_btn)
+                
+        main_layout.addLayout(btn_layout)
+
+    
         
 def _refresh_wellness(self):
         """Recharge les données depuis la BDD — appelé au retour sur le dashboard."""

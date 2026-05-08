@@ -62,7 +62,7 @@ def seed_data():
         ("DA COSTA", "Kévin", "coach", "coach@team.fr",  hash_password("coach123")),
     ]
     cursor.executemany(
-        "INSERT INTO users (nom, prenom, role, email, password) VALUES (?,?,?,?,?)",
+        "INSERT OR IGNORE INTO users (nom, prenom, role, email, password) VALUES (?,?,?,?,?)",
         staff
     )
 
@@ -95,7 +95,7 @@ def seed_data():
         ("Gouranton",  "Emile",      1, "Gardien", "2005-04-07", 172, 78),
     ]
     cursor.executemany(
-        """INSERT INTO players
+        """INSERT OR IGNORE INTO players
            (nom, prenom, numero, poste, date_naissance, taille, poids)
            VALUES (?,?,?,?,?,?,?)""",
         joueurs
@@ -110,7 +110,6 @@ def seed_data():
         (5, today, 4, 3, 5, 2, 1),
         (6, today, 3, 4, 2, 3, 2),
         (7, today, 5, 4, 4, 1, 3),
-        (8, today, 1, 2, 2, 5, 4),
     ]
     cursor.executemany(
         """INSERT OR IGNORE INTO wellness
@@ -129,7 +128,6 @@ def seed_data():
         (5, today, 6, 5),
         (6, today, 4, 3),
         (7, today, 7, 6),
-        (8, today, 9, 8),
     ]
     cursor.executemany(
         """INSERT OR IGNORE INTO rpe
@@ -147,7 +145,6 @@ def seed_data():
         (5, today, 61.7),
         (6, today, 49.2),
         (7, today, 57.6),
-        (8, today, 59.2),
     ]
     cursor.executemany(
         """INSERT OR IGNORE INTO grip
@@ -165,7 +162,6 @@ def seed_data():
         (5, today, 74.2),
         (6, today, 92.1),
         (7, today, 85.4),
-        (8, today, 69.3),
     ]
     cursor.executemany(
         """INSERT OR IGNORE INTO poids
@@ -180,11 +176,6 @@ def seed_data():
  
  
 if __name__ == "__main__":
-    # Supprimer l'ancienne base si elle existe
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-        print("[DB] Ancienne base supprimée.")
     init_db()
-    seed_data()
     print("[DB] Prêt.")
  

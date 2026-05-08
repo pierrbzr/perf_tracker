@@ -60,7 +60,7 @@ FONT_SIZE_LABEL     = 12
 # ============================================================
 
 WINDOW_WIDTH        = 980
-WINDOW_HEIGHT       = 600
+WINDOW_HEIGHT       = 740
 SIDEBAR_WIDTH       = 220
 BORDER_RADIUS       = 8
 PADDING_CARD        = 16
