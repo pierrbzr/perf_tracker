@@ -6,6 +6,9 @@ Toutes les requêtes SQL liées au wellness (CRUD).
 from database.db import get_connection
 from datetime import date as date_type
 
+from numpy import mean
+from datetime import date, timedelta
+
 
 # ============================================================
 # CRÉATION
@@ -123,13 +126,74 @@ def get_team_wellness_range(date_start: str, date_end: str) -> list:
         FROM wellness w
         JOIN players p ON p.id = w.player_id
         WHERE w.date BETWEEN ? AND ?
-        ORDER BY w.date DESC, p.numero ASC
+        ORDER BY w.date ASC, p.numero ASC
         """,
         (date_start, date_end)
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
 
+def get_team_wellness_range_average(days: int=30) -> dict:
+    """
+    Retourne toutes les saisies wellness de l'équipe entre deux dates.
+    Utile pour les graphiques et exports.
+    """
+    today = date.today()
+    start = (today - timedelta(days=days)).isoformat()
+    
+    conn = get_connection()
+    rows = conn.execute(
+        """
+        SELECT p.id AS player_id, p.nom, p.prenom, p.numero,
+               w.date, w.sommeil, w.humeur, w.energie,
+               w.courbatures, w.stress, ROUND(AVG(score_total), 2)        
+        FROM wellness w
+        JOIN players p ON p.id = w.player_id
+        WHERE date >= ?
+        GROUP BY date
+        ORDER BY date ASC
+    """, 
+    (start,)
+    ).fetchall()
+    conn.close()
+            
+    return [dict(row) for row in rows]
+
+# ============================================================
+# CALCULS DES MOYENNES
+# ============================================================
+
+def calc_average_wellness():
+
+        team_wellness = get_team_wellness_today()
+
+        sommeil = []
+        humeur = []
+        energie = []
+        courbatures = []
+        stress = []
+        score_total = []
+
+        for joueur in team_wellness:
+            if joueur['score_total'] is not None:
+                score_total.append(joueur['score_total'])
+                sommeil.append(joueur['sommeil'])
+                humeur.append(joueur['humeur'])
+                energie.append(joueur['energie'])
+                courbatures.append(joueur['courbatures'])
+                stress.append(joueur['stress'])
+                
+        if not sommeil:
+            return ["-", "-", "-", "-", "-", "-"]
+
+        return [
+        round(mean(sommeil), 2),
+        round(mean(humeur), 2),
+        round(mean(energie), 2),
+        round(mean(courbatures), 2),
+        round(mean(stress), 2),
+        round(mean(score_total), 2),
+    ]
 
 # ============================================================
 # VÉRIFICATION

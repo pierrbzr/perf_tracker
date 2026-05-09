@@ -8,6 +8,9 @@ RPEM = ressenti musculaire / RPEC = ressenti cardio
 from database.db import get_connection
 from datetime import date as date_type
 
+from numpy import mean
+from datetime import date, timedelta
+
 
 # ============================================================
 # CRÉATION
@@ -127,6 +130,55 @@ def get_team_rpe_range(date_start: str, date_end: str) -> list:
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+def get_team_rpe_range_average(days: int=30) -> dict:
+    """
+    Retourne toutes les saisies rpe de l'équipe entre deux dates.
+    Utile pour les graphiques et exports.
+    """
+    today = date.today()
+    start = (today - timedelta(days=days)).isoformat()
+    
+    conn = get_connection()
+    rows = conn.execute(
+        """
+        SELECT p.id AS player_id, p.nom, p.prenom, p.numero,
+               r.date, ROUND(AVG(rpem), 2), ROUND(AVG(rpec), 2)
+        
+        FROM rpe r
+        JOIN players p ON p.id = r.player_id
+        WHERE date >= ?
+        GROUP BY date
+        ORDER BY date ASC
+    """, 
+    (start,)
+    ).fetchall()
+    conn.close()
+            
+    return [dict(row) for row in rows]
+
+# ============================================================
+# CALCULS DES MOYENNES
+# ============================================================
+
+def calc_average_rpe():
+        team_rpe = get_team_rpe_today()
+        
+        rpe_m = []
+        rpe_c = []
+                
+        for joueur in team_rpe:
+            if joueur['rpem'] is not None:
+                rpe_m.append(joueur['rpem'])
+                rpe_c.append(joueur['rpec'])
+                
+        if not rpe_m:
+            return ["-", "-"]
+
+        return [
+            round(mean(rpe_m), 2),
+            round(mean(rpe_c), 2),
+        ]
 
 
 # ============================================================

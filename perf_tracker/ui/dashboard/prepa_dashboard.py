@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from models.wellness import get_team_wellness_today, get_submission_wellness_rate_today
-from models.rpe import get_team_rpe_today, get_submission_rpe_rate_today
+from models.wellness import calc_average_wellness, get_submission_wellness_rate_today
+from models.rpe import calc_average_rpe, get_submission_rpe_rate_today
 from models.grip import get_team_grip_today, get_submission_grip_rate_today
 from models.poids import get_team_poids_today, get_submission_poids_rate_today
 
@@ -42,38 +42,6 @@ class PrepaDashboard(QWidget):
         self.user = user
         self._build_ui()
 
-    def calc_average_wellness(self):
-
-        team_wellness = get_team_wellness_today()
-
-        sommeil = []
-        humeur = []
-        energie = []
-        courbatures = []
-        stress = []
-        score_total = []
-
-        for joueur in team_wellness:
-            if joueur['score_total'] is not None:
-                score_total.append(joueur['score_total'])
-                sommeil.append(joueur['sommeil'])
-                humeur.append(joueur['humeur'])
-                energie.append(joueur['energie'])
-                courbatures.append(joueur['courbatures'])
-                stress.append(joueur['stress'])
-                
-        if not sommeil:
-            return ["-", "-", "-", "-", "-", "-"]
-
-        return [
-        round(mean(sommeil), 2),
-        round(mean(humeur), 2),
-        round(mean(energie), 2),
-        round(mean(courbatures), 2),
-        round(mean(stress), 2),
-        round(mean(score_total), 2),
-    ]
-        
     def calc_fill_rate_wellness(self) -> float:
         wellness_rate = get_submission_wellness_rate_today()
         
@@ -81,26 +49,6 @@ class PrepaDashboard(QWidget):
             return ["-"]
         else:
             return str(wellness_rate["rate"]) + "%"
-
-    
-    def calc_average_rpe(self):
-        team_rpe = get_team_rpe_today()
-        
-        rpe_m = []
-        rpe_c = []
-                
-        for joueur in team_rpe:
-            if joueur['rpem'] is not None:
-                rpe_m.append(joueur['rpem'])
-                rpe_c.append(joueur['rpec'])
-                
-        if not rpe_m:
-            return ["-", "-"]
-
-        return [
-            round(mean(rpe_m), 2),
-            round(mean(rpe_c), 2),
-        ]
             
     def calc_fill_rate_rpe(self) -> float:
         rpe_rate = get_submission_rpe_rate_today()
@@ -164,10 +112,10 @@ class PrepaDashboard(QWidget):
         
     def _build_ui(self):
 
-        average_wellness = self.calc_average_wellness()
+        average_wellness = calc_average_wellness()
         fill_rate_wellness = self.calc_fill_rate_wellness()
 
-        average_rpe = self.calc_average_rpe()
+        average_rpe = calc_average_rpe()
         fill_rate_rpe = self.calc_fill_rate_rpe()
         
         average_grip = self.calc_average_grip()

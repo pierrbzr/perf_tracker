@@ -16,8 +16,8 @@ from assets.theme import (
     FONT_FAMILY, FONT_SIZE_TITLE, FONT_SIZE_BODY, FONT_SIZE_SMALL,
     BORDER_RADIUS
 )
-from models.player import get_all_players
-from models.wellness import get_team_wellness_today, get_team_wellness_range
+
+from models.graphs import WellnessChart
 
 
 class WellnessTeamGraph(QWidget):
@@ -27,10 +27,15 @@ class WellnessTeamGraph(QWidget):
     """
     back_requested  = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, days : int=7, parent=None):
         super().__init__(parent)
+        self.days = days
         self._build_ui()
-
+        
+    def update_days_charts(self, new_days: int):
+        self.days = new_days
+        self.chart.set_days(new_days)
+       
     def _build_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(24, 24, 24, 24)
@@ -58,7 +63,6 @@ class WellnessTeamGraph(QWidget):
                 color: white;
             }}
             QPushButton:pressed {{ background-color: {COLOR_GREEN_DARK}; }}
-
         """)
         back_btn.clicked.connect(self.back_requested.emit)
 
@@ -102,8 +106,9 @@ class WellnessTeamGraph(QWidget):
         legend = QHBoxLayout()
         legend.setSpacing(16)
         for texte , attribut in [
-            ("7 jours", "week"),
-            ("30 jours", "month"),
+            ("7 jours", 7),
+            ("14 jours", 14),
+            ("30 jours", 30),
         ]:
             btn = QPushButton(texte)
             btn.setStyleSheet(f"""
@@ -122,14 +127,25 @@ class WellnessTeamGraph(QWidget):
                 }}
                 QPushButton:pressed {{ color: {COLOR_GREEN_DARK}; }}
             """)
+            btn.clicked.connect(lambda checked, d=attribut: self.update_days_charts(d))
             legend.addWidget(btn)
         legend.addStretch()
         main_layout.addLayout(legend)
+        
+        test_chart = QFrame()
+        test_chart.setFixedHeight(500)
+        
+        layout = QHBoxLayout(test_chart)
+        layout.setContentsMargins(16, 0, 16, 0)
+        layout.setSpacing(12)
+        
+        self.chart = WellnessChart(self.days)
+        self.chart.setMinimumHeight(500)
+        layout.addWidget(self.chart)
+        
+        main_layout.addWidget(test_chart)
+        
         main_layout.addStretch()
-
-    def _load_players(self):
-        print("Graphique Wellness en construction")
         
     def _refresh(self):
-        """Recharge la liste des joueurs depuis la BDD."""
-        self._load_players()
+        self.chart.set_days(self.days)
