@@ -31,7 +31,10 @@ class PrepaDashboard(QWidget):
     go_to_grip = pyqtSignal()
     go_to_poids = pyqtSignal()
     go_to_players = pyqtSignal()
-    go_to_graphs = pyqtSignal()
+    go_to_wellness_graph = pyqtSignal()
+    go_to_rpe_graph = pyqtSignal()
+    go_to_grip_graph = pyqtSignal()
+    go_to_poids_graph = pyqtSignal()
     logout_requested = pyqtSignal()
 
     def __init__(self, user: dict, parent=None):
@@ -215,6 +218,7 @@ class PrepaDashboard(QWidget):
         wellness_frame.setObjectName("wellness")
         wellness_frame.setMinimumHeight(200)
         wellness_frame.setMaximumHeight(600)
+        
         wellness_frame.setStyleSheet(f"""                   
             background-color: {COLOR_BG_CARD}; 
             border-radius: 10px;
@@ -222,7 +226,7 @@ class PrepaDashboard(QWidget):
 
         wellness_layout = QVBoxLayout(wellness_frame)
         wellness_layout.setContentsMargins(16, 16, 16, 16)
-        wellness_layout.setSpacing(6)
+        wellness_layout.setSpacing(12)
         
         # Titre
         wellness_title = QLabel("Wellness : ")
@@ -329,9 +333,13 @@ class PrepaDashboard(QWidget):
         wellness_rate_row.addWidget(wellness_rate_label)
         wellness_rate_row.addStretch()
         wellness_rate_row.addWidget(wellness_rate_val)
-        
         wellness_layout.addLayout(wellness_rate_row)
-        wellness_layout.addSpacing(8)
+        wellness_layout.addSpacing(12)
+
+        # Layout Boutons
+        
+        wellness_btn_layout = QHBoxLayout()
+        wellness_btn_layout.setContentsMargins(0, 8, 0, 8)
 
         # Bouton Wellness
         wellness_btn = QPushButton("Gérer Wellness")
@@ -351,7 +359,30 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         wellness_btn.clicked.connect(self.go_to_wellness.emit)
-        wellness_layout.addWidget(wellness_btn)
+        
+        # Bouton Graphique
+        graph_wellness_btn = QPushButton("Graphiques Wellness")
+        graph_wellness_btn.setCursor(Qt.PointingHandCursor)
+        graph_wellness_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        graph_wellness_btn.clicked.connect(self.go_to_wellness_graph.emit)
+        
+        wellness_layout.addLayout(wellness_btn_layout)
+        wellness_btn_layout.addWidget(graph_wellness_btn)
+        wellness_btn_layout.addWidget(wellness_btn)
+
 
 # ── Widget RPE ────────────────────────────────────────
         rpe_frame = QFrame()
@@ -369,8 +400,10 @@ class PrepaDashboard(QWidget):
         rpe_layout = QVBoxLayout(rpe_frame)
         rpe_layout.setContentsMargins(16, 16, 16, 16)
         rpe_layout.setSpacing(12)
-
+        
+        # Titre
         rpe_title = QLabel("RPE :")
+        wellness_title.setAlignment(Qt.AlignLeft)
         rpe_title.setStyleSheet(f"""
             color: {COLOR_TEXT_PRIMARY};
             background-color: transparent;
@@ -439,6 +472,11 @@ class PrepaDashboard(QWidget):
         rpe_rate_row.addWidget(rpe_rate_val)
         rpe_layout.addLayout(rpe_rate_row)
         rpe_layout.addSpacing(12)
+        
+        # Layout Boutons
+        
+        rpe_btn_layout = QHBoxLayout()
+        rpe_btn_layout.setContentsMargins(0, 8, 0, 8)
 
         # Bouton RPE
         rpe_btn = QPushButton("Gérer RPE")
@@ -458,7 +496,29 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         rpe_btn.clicked.connect(self.go_to_rpe.emit)
-        rpe_layout.addWidget(rpe_btn)
+        
+        # Bouton Graphique
+        graph_rpe_btn = QPushButton("Graphiques RPE")
+        graph_rpe_btn.setCursor(Qt.PointingHandCursor)
+        graph_rpe_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        graph_rpe_btn.clicked.connect(self.go_to_rpe_graph.emit)
+        
+        rpe_layout.addLayout(rpe_btn_layout)
+        rpe_btn_layout.addWidget(graph_rpe_btn)
+        rpe_btn_layout.addWidget(rpe_btn)
         
 # ── Widget Grip ────────────────────────────────────────
         grip_frame = QFrame()
@@ -547,8 +607,13 @@ class PrepaDashboard(QWidget):
         grip_rate_row.addWidget(grip_rate_val)
         grip_layout.addLayout(grip_rate_row)
         grip_layout.addSpacing(12)
+        
+        # Layout Boutons
+        
+        grip_btn_layout = QHBoxLayout()
+        grip_btn_layout.setContentsMargins(0, 8, 0, 8)
 
-        # Bouton grip
+        # Bouton RPE
         grip_btn = QPushButton("Gérer Grip")
         grip_btn.setCursor(Qt.PointingHandCursor)
         grip_btn.setStyleSheet(f"""
@@ -566,7 +631,29 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         grip_btn.clicked.connect(self.go_to_grip.emit)
-        grip_layout.addWidget(grip_btn)
+        
+        # Bouton Graphique
+        graph_grip_btn = QPushButton("Graphiques Grip")
+        graph_grip_btn.setCursor(Qt.PointingHandCursor)
+        graph_grip_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        graph_grip_btn.clicked.connect(self.go_to_grip_graph.emit)
+        
+        grip_layout.addLayout(grip_btn_layout)
+        grip_btn_layout.addWidget(graph_grip_btn)
+        grip_btn_layout.addWidget(grip_btn)
         
 # ── Widget Poids ────────────────────────────────────────
         poids_frame = QFrame()
@@ -655,6 +742,11 @@ class PrepaDashboard(QWidget):
         poids_rate_row.addWidget(poids_rate_val)
         poids_layout.addLayout(poids_rate_row)
         poids_layout.addSpacing(12)
+        
+        # Layout Boutons
+        
+        poids_btn_layout = QHBoxLayout()
+        poids_btn_layout.setContentsMargins(0, 8, 0, 8)
 
         # Bouton poids
         poids_btn = QPushButton("Gérer Poids")
@@ -674,7 +766,31 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         poids_btn.clicked.connect(self.go_to_poids.emit)
-        poids_layout.addWidget(poids_btn)
+        
+        # Bouton Graphique
+        graph_poids_btn = QPushButton("Graphiques Poids")
+        graph_poids_btn.setCursor(Qt.PointingHandCursor)
+        graph_poids_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        graph_poids_btn.clicked.connect(self.go_to_poids_graph.emit)
+        
+        poids_layout.addLayout(poids_btn_layout)
+        poids_btn_layout.addWidget(graph_poids_btn)
+        poids_btn_layout.addWidget(poids_btn)
+        
+        
 
 # ── Ajout des frames ──────────────────────────────────
         wellness_rpe_layout.addWidget(wellness_frame)
@@ -703,41 +819,9 @@ class PrepaDashboard(QWidget):
             QPushButton:pressed {{ background-color: #007A3D; }}
         """)
         player_btn.clicked.connect(self.go_to_players.emit)
-
-# ── Bouton de redirection vers les graphiques de données Wellness/RPE/Grip/Poids ──────────────────────────────────
-
-        graph_btn = QPushButton("Graphiques")
-        graph_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: transparent;
-                color: white;
-                border: 2px solid {COLOR_GREEN};
-                border-radius: {BORDER_RADIUS}px;
-                padding: 10px;
-                font-size: {FONT_SIZE_BODY}px;
-                font-weight: 700;
-                font-family: "{FONT_FAMILY}";
-            }}
-           QPushButton:hover {{
-                background-color: {COLOR_GREEN};
-                color: white;
-            }}            
-            QPushButton:pressed {{ background-color: #007A3D; }}
-        """)
-        graph_btn.clicked.connect(self.go_to_graphs.emit)
-        
-# ── Organisation des boutons ──────────────────────────────────
-
-        btn_layout = QHBoxLayout()
-        btn_layout.setContentsMargins(8, 8, 8, 8)
-
-        btn_layout.addWidget(graph_btn) 
-        btn_layout.addWidget(player_btn)
                 
-        main_layout.addLayout(btn_layout)
+        main_layout.addWidget(player_btn)
 
-    
-        
 def _refresh_wellness(self):
         """Recharge les données depuis la BDD — appelé au retour sur le dashboard."""
         self.__init__(self.user)

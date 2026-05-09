@@ -20,16 +20,23 @@ from ui.dashboard.prepa_dashboard import PrepaDashboard
 from ui.dashboard.coach_dashboard import CoachDashboard
 
 from ui.wellness.wellness_player_list import WellnessPlayerList
-from ui.rpe.rpe_player_list import RPEPlayerList
-from ui.grip.grip_player_list import GripPlayerList
-from ui.poids.poids_player_list import PoidsPlayerList
-from ui.players.player_list import PlayerList
-from ui.graphs.graphs import Graphs
-
 from ui.wellness.wellness_form import WellnessForm
+from ui.wellness.wellness_team_graph import WellnessTeamGraph
+
+from ui.rpe.rpe_player_list import RPEPlayerList
 from ui.rpe.rpe_form import RPEForm
+from ui.rpe.rpe_team_graph import RPETeamGraph
+
+
+from ui.grip.grip_player_list import GripPlayerList
 from ui.grip.grip_form import GripForm
+from ui.grip.grip_team_graph import GripTeamGraph
+
+from ui.poids.poids_player_list import PoidsPlayerList
 from ui.poids.poids_form import PoidsForm
+from ui.poids.poids_team_graph import PoidsTeamGraph
+
+from ui.players.player_list import PlayerList
 from ui.players.player_form import PlayerForm
 
 
@@ -92,7 +99,10 @@ class MainWindow(QMainWindow):
         self._prepa_screen.go_to_grip.connect(self._show_grip_player_list)
         self._prepa_screen.go_to_poids.connect(self._show_poids_player_list)
         self._prepa_screen.go_to_players.connect(self._show_player_list)
-        self._prepa_screen.go_to_graphs.connect(self._show_graphs_list)
+        self._prepa_screen.go_to_wellness_graph.connect(self._show_wellness_graph)
+        self._prepa_screen.go_to_rpe_graph.connect(self._show_rpe_graph)
+        self._prepa_screen.go_to_grip_graph.connect(self._show_grip_graph)
+        self._prepa_screen.go_to_poids_graph.connect(self._show_poids_graph)
         self.setCentralWidget(self._prepa_screen)
         
         self.setWindowTitle(
@@ -125,6 +135,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             f"Perf Tracker — Wellness | {player['prenom']} {player['nom']}"
         )
+        
+    def _show_wellness_graph(self):
+        screen = WellnessTeamGraph()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Wellness")
 
 # ── Routing RPE ─────────────────────────────────────
 
@@ -143,6 +159,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             f"Perf Tracker — RPE | {player['prenom']} {player['nom']}"
         )
+        
+    def _show_rpe_graph(self):
+        screen = RPETeamGraph()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — RPE")
 
 # ── Routing Grip ─────────────────────────────────────
 
@@ -161,6 +183,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(
             f"Perf Tracker — Grip | {player['prenom']} {player['nom']}"
         )
+        
+    def _show_grip_graph(self):
+        screen = GripTeamGraph()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Grip")
 
 # ── Routing Poids ───────────────────────────────────── 
 
@@ -180,6 +208,12 @@ class MainWindow(QMainWindow):
             f"Perf Tracker — Poids | {player['prenom']} {player['nom']}"
         )
         
+    def _show_poids_graph(self):
+        screen = PoidsTeamGraph()
+        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
+        self.setCentralWidget(screen)
+        self.setWindowTitle("Perf Tracker — Poids")
+        
 # ── Routing Liste de joueurs ─────────────────────────────────────
 
     def _show_player_list(self):
@@ -197,15 +231,6 @@ class MainWindow(QMainWindow):
             f"Perf Tracker — Grip | {player['prenom']} {player['nom']}"
         )
         
-# ── Routing Graphiques Dashboard ─────────────────────────────────────
-
-    def _show_graphs_list(self):
-        screen = Graphs()
-        screen.back_requested.connect(lambda: self._on_back_to_dashboard()) 
-        self.setCentralWidget(screen)
-        self.setWindowTitle("Perf Tracker — Graphiques")
-        
-
 # ── Routing Dashboard ─────────────────────────────────────
 
     def _on_back_to_dashboard(self):
