@@ -15,6 +15,8 @@ from models.rpe import calc_average_rpe, get_submission_rpe_rate_today
 from models.grip import get_team_grip_today, get_submission_grip_rate_today
 from models.poids import get_team_poids_today, get_submission_poids_rate_today
 
+from database.db import seed_data
+
 from numpy import mean
 
 from assets.theme import (
@@ -769,6 +771,30 @@ class PrepaDashboard(QWidget):
         player_btn.clicked.connect(self.go_to_players.emit)
                 
         main_layout.addWidget(player_btn)
+        
+# ── Bouton d'insertion de données de tests ──────────────────────────────────
+
+        insert_data_btn = QPushButton("Insérer données tests")
+        insert_data_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: white;
+                border: 2px solid {COLOR_GREEN};
+                border-radius: {BORDER_RADIUS}px;
+                padding: 10px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+            }}
+           QPushButton:hover {{
+                background-color: {COLOR_GREEN};
+                color: white;
+            }}            
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
+        insert_data_btn.clicked.connect(seed_data)
+                
+        main_layout.addWidget(insert_data_btn)
 
 def _refresh_wellness(self):
         """Recharge les données depuis la BDD — appelé au retour sur le dashboard."""

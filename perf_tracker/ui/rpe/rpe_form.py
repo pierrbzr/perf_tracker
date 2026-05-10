@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from assets.theme import (
-    COLOR_GREEN, COLOR_RED, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY,
+    COLOR_GREEN, COLOR_0, COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5, COLOR_RED, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY,
     COLOR_BG_CARD, COLOR_BG_INPUT, COLOR_BORDER,
     FONT_FAMILY, FONT_SIZE_TITLE, FONT_SIZE_BODY, FONT_SIZE_SMALL,
     BORDER_RADIUS, PADDING_CARD
@@ -144,7 +144,7 @@ class RPEForm(QWidget):
 
             for val in range(1, 11):
                 btn = QPushButton(str(val))
-                btn.setFixedSize(60, 40)
+                btn.setFixedSize(65, 40)
                 btn.setCursor(Qt.PointingHandCursor)
                 btn.setProperty("indicator", key)
                 btn.setProperty("value", val)
@@ -234,7 +234,7 @@ class RPEForm(QWidget):
         for btn in self.btn_groups[key]:
             v = btn.property("value")
             if v == value:
-                btn.setStyleSheet(self._btn_style_active())
+                btn.setStyleSheet(self._btn_style_active(v))
             else:
                 btn.setStyleSheet(self._btn_style_inactive())
 
@@ -269,10 +269,11 @@ class RPEForm(QWidget):
 
     # ── Styles boutons ───────────────────────────────────────
 
-    def _btn_style_active(self) -> str:
+    def _btn_style_active(self, value) -> str:
+        colors = self._get_square_color()
         return f"""
             QPushButton {{
-                background-color: {COLOR_GREEN};
+                background-color: {colors[value]};
                 color: white;
                 border: none;
                 border-radius: {BORDER_RADIUS}px;
@@ -294,3 +295,7 @@ class RPEForm(QWidget):
                 font-family: "{FONT_FAMILY}";
             }}
         """
+
+
+    def _get_square_color(index: int):
+        return [f"{COLOR_0}", f"{COLOR_0}", f"{COLOR_1}", f"{COLOR_1}", f"{COLOR_2}", f"{COLOR_2}", f"{COLOR_3}", f"{COLOR_3}", f"{COLOR_4}", f"{COLOR_4}", f"{COLOR_5}"]

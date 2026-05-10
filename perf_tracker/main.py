@@ -240,7 +240,6 @@ class MainWindow(QMainWindow):
  
 if __name__ == "__main__":
     init_db()
-    seed_data()
  
     app = QApplication(sys.argv)
     app.setStyleSheet(STYLESHEET)

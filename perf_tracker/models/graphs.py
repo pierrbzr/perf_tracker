@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
 from PyQt5.QtCore import Qt
 
 import time
-from datetime import datetime
+from datetime import date, datetime
 
 from assets.theme import (
     COLOR_GREEN, COLOR_RED, COLOR_BG_CARD, COLOR_BG_INPUT,
@@ -17,8 +17,8 @@ from assets.theme import (
     FONT_SIZE_TITLE, FONT_SIZE_BODY, FONT_SIZE_SMALL,
 
 )
-from models.wellness import get_team_wellness_range_average
-from models.rpe import get_team_rpe_range_average
+from models.wellness import get_team_wellness_range_average, calc_average_wellness
+from models.rpe import get_team_rpe_range_average, calc_average_rpe
 
 
 class WellnessChart(QFrame):
@@ -125,6 +125,56 @@ class WellnessChart(QFrame):
             rateLimit=60,
             slot=self._on_hover
         )
+        
+    def _plot_today(self):
+        # ── Désactive le hover ──
+        if hasattr(self, "proxy"):
+            self.proxy.disconnect()
+            self.proxy = None
+        if hasattr(self, "vline"):
+            self.plot_widget.removeItem(self.vline)
+            
+        rows = calc_average_wellness()
+
+        if not rows:
+            return
+
+        # ── Données arbitraires ──
+        categories = ["Sommeil", "Humeur", "Énergie", "Courbatures", "Stress"]
+        valeurs    = [rows[0], rows[1], rows[2], rows[3], rows[4]]
+
+        # ── Axe X avec labels ──
+        ax = self.plot_widget.getAxis("bottom")
+        ax.setTicks([[(i, categories[i]) for i in range(len(categories))]])
+
+        # ── Barres ──
+        bargraph = pg.BarGraphItem(
+            x=list(range(len(valeurs))),
+            height=valeurs,
+            width=0.6,
+            brush="#534AB7",
+            pen=pg.mkPen(color="#534AB7")
+        )
+        
+        # ── Barre de référence à la moitié ──
+        ref_line = pg.InfiniteLine(
+            pos=2.5 , angle=0,
+            pen=pg.mkPen(color="#AAAAAA", width=1, style=Qt.DashLine)
+        )
+        self.plot_widget.addItem(ref_line)
+
+        # ── Légende au dessus des batons──
+        for i, valeur in enumerate(valeurs):
+            text = pg.TextItem(
+                text=str(valeur),
+                color="white",
+                anchor=(0.5, 1)  # ← centré horizontalement, ancré en bas du texte
+            )
+            text.setPos(i, valeur + 0.1)  # ← légèrement au-dessus de la barre
+            self.plot_widget.addItem(text)
+    
+        self.plot_widget.addItem(bargraph)
+        self.tooltip_label.setVisible(False)
 
     def _on_hover(self, event):
         
@@ -164,6 +214,12 @@ class WellnessChart(QFrame):
             self.days = days
         self.plot_widget.clear()
         self._plot()
+        
+    def refresh_today(self, days: int = None):
+        if days is not None:
+            self.days = days
+        self.plot_widget.clear()
+        self._plot_today()
         
     def set_days(self, days: int):
         self.days = days
@@ -289,6 +345,56 @@ class RPEChart(QFrame):
             rateLimit=60,
             slot=self._on_hover
         )
+        
+    def _plot_today(self):
+        # ── Désactive le hover ──
+        if hasattr(self, "proxy"):
+            self.proxy.disconnect()
+            self.proxy = None
+        if hasattr(self, "vline"):
+            self.plot_widget.removeItem(self.vline)
+        
+        rows = calc_average_rpe()
+
+        if not rows:
+            return
+
+        # ── Données arbitraires ──
+        categories = ["RPE M", "RPE C"]
+        valeurs    = [rows[0], rows[1]]
+
+        # ── Axe X avec labels ──
+        ax = self.plot_widget.getAxis("bottom")
+        ax.setTicks([[(i, categories[i]) for i in range(len(categories))]])
+
+        # ── Barres ──
+        bargraph = pg.BarGraphItem(
+            x=list(range(len(valeurs))),
+            height=valeurs,
+            width=0.6,
+            brush="#534AB7",
+            pen=pg.mkPen(color="#534AB7")
+        )
+        
+        # ── Barre de référence à la moitié ──
+        ref_line = pg.InfiniteLine(
+            pos=5 , angle=0,
+            pen=pg.mkPen(color="#AAAAAA", width=1, style=Qt.DashLine)
+        )
+        self.plot_widget.addItem(ref_line)
+
+        # ── Légende au dessus des batons──
+        for i, valeur in enumerate(valeurs):
+            text = pg.TextItem(
+                text=str(valeur),
+                color="white",
+                anchor=(0.5, 1)  # ← centré horizontalement, ancré en bas du texte
+            )
+            text.setPos(i, valeur + 0.1)  # ← légèrement au-dessus de la barre
+            self.plot_widget.addItem(text)
+            
+        self.plot_widget.addItem(bargraph)
+        self.tooltip_label.setVisible(False)
 
     def _on_hover(self, event):
         
@@ -328,6 +434,12 @@ class RPEChart(QFrame):
             self.days = days
         self.plot_widget.clear()
         self._plot()
+        
+    def refresh_today(self, days: int = None):
+        if days is not None:
+            self.days = days
+        self.plot_widget.clear()
+        self._plot_today()
         
     def set_days(self, days: int):
         self.days = days

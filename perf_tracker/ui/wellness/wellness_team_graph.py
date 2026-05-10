@@ -33,8 +33,11 @@ class WellnessTeamGraph(QWidget):
         self._build_ui()
         
     def update_days_charts(self, new_days: int):
-        self.days = new_days
-        self.chart.set_days(new_days)
+        if new_days == 1:
+            self.chart.refresh_today()
+        else:
+            self.days = new_days
+            self.chart.set_days(new_days)
        
     def _build_ui(self):
         main_layout = QVBoxLayout(self)
@@ -106,6 +109,7 @@ class WellnessTeamGraph(QWidget):
         legend = QHBoxLayout()
         legend.setSpacing(16)
         for texte , attribut in [
+            ("Aujourd'hui", 1),
             ("7 jours", 7),
             ("14 jours", 14),
             ("30 jours", 30),

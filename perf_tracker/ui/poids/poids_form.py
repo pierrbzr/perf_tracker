@@ -5,7 +5,7 @@ Formulaire de saisie poids pour un joueur sélectionné.
 """
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QDoubleSpinBox, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QFrame, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -19,12 +19,6 @@ from assets.theme import (
 from models.poids import create_poids, has_poids_submitted_today, get_poids_today
 
 
-# Libellés et descriptions des indicateurs
-INDICATORS = [
-    ("poids",     "Poids",      "Poids du jour"),
-]
-
-
 class PoidsForm(QWidget):
     """
     Formulaire poids pour un joueur.
@@ -36,7 +30,6 @@ class PoidsForm(QWidget):
     def __init__(self, player: dict, parent=None):
         super().__init__(parent)
         self.player   = player
-        self.values   = {key: None for key, _, _ in INDICATORS}
         self._build_ui()
         self._check_already_submitted()
 
@@ -102,65 +95,47 @@ class PoidsForm(QWidget):
         card_layout.setSpacing(16)
 
         # ── Indicateurs ──
-        self.btn_groups = {}  # key → liste de boutons
+        row_frame = QFrame()
+        row_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLOR_BG_INPUT};
+                border-radius: 8px;
+            }}
+        """)
+        row_layout = QVBoxLayout(row_frame)
+        row_layout.setContentsMargins(12, 8, 12, 8)
+        row_layout.setSpacing(8)
 
-        for key, label, description in INDICATORS:
-            row_frame = QFrame()
-            row_frame.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {COLOR_BG_INPUT};
-                    border-radius: 8px;
-                }}
-            """)
-            row_layout = QVBoxLayout(row_frame)
-            row_layout.setContentsMargins(12, 8, 12, 8)
-            row_layout.setSpacing(8)
+        # Libellé
+        lbl = QLabel("Poids")
+        lbl.setStyleSheet(f"""
+            color: {COLOR_TEXT_PRIMARY};
+            font-size: {FONT_SIZE_BODY}px;
+            font-weight: 700;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
 
-            # Libellé
-            lbl = QLabel(f"{label}")
-            lbl.setStyleSheet(f"""
-                color: {COLOR_TEXT_PRIMARY};
-                font-size: {FONT_SIZE_BODY}px;
-                font-weight: 700;
-                font-family: "{FONT_FAMILY}";
-                border: none;
-                background: transparent;
-            """)
+        desc = QLabel("Poids du jour")
+        desc.setStyleSheet(f"""
+            color: {COLOR_TEXT_SECONDARY};
+            font-size: {FONT_SIZE_SMALL}px;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
 
-            desc = QLabel(description)
-            desc.setStyleSheet(f"""
-                color: {COLOR_TEXT_SECONDARY};
-                font-size: {FONT_SIZE_SMALL}px;
-                font-family: "{FONT_FAMILY}";
-                border: none;
-                background: transparent;
-            """)
+        # Zone de texte
+        self.sb_poids = QDoubleSpinBox()
+        self.sb_poids.setRange(0.0, 100.0)
+        self.sb_poids.setSingleStep(0.1)
+        self.sb_poids.setDecimals(1)
 
-            # Boutons 1 à 10
-            btns_layout = QHBoxLayout()
-            btns_layout.setSpacing(18)
-            btns = []
-
-            for val in range(1, 11):
-                btn = QPushButton(str(val))
-                btn.setFixedSize(60, 40)
-                btn.setCursor(Qt.PointingHandCursor)
-                btn.setProperty("indicator", key)
-                btn.setProperty("value", val)
-                btn.setStyleSheet(self._btn_style_inactive())
-                btn.clicked.connect(
-                    lambda checked, k=key, v=val: self._on_value_selected(k, v)
-                )
-                btns_layout.addWidget(btn)
-                btns.append(btn)
-
-            btns_layout.addStretch()
-            self.btn_groups[key] = btns
-
-            row_layout.addWidget(lbl)
-            row_layout.addWidget(desc)
-            row_layout.addLayout(btns_layout)
-            card_layout.addWidget(row_frame)
+        row_layout.addWidget(lbl)
+        row_layout.addWidget(desc)
+        row_layout.addWidget(self.sb_poids)
+        card_layout.addWidget(row_frame)
 
         # ── Message erreur ──
         self.error_label = QLabel("")
@@ -197,7 +172,7 @@ class PoidsForm(QWidget):
                 color: #606060;
             }}
         """)
-        self.save_btn.clicked.connect(self._on_save)
+        self.save_btn.clicked.connect(lambda: self._on_save(self.sb_poids.value()))
         card_layout.addWidget(self.save_btn)
 
         main_layout.addWidget(card)
@@ -208,13 +183,17 @@ class PoidsForm(QWidget):
     def _check_already_submitted(self):
         """Pré-remplit le formulaire si déjà saisi aujourd'hui, mais reste modifiable."""
         if has_poids_submitted_today(self.player["id"]):
-            existing = get_poids_today(self.player["id"])
             
             # Pré-remplir les valeurs
-            for key, _, _ in INDICATORS:
-                self._on_value_selected(key, existing[key])
-                
-            self.save_btn.setText("Modifier la saisie")
+            value = get_poids_today(self.player["id"])
+            valeur = value["grip"]
+            print(valeur)
+            if valeur is not None:
+                self.sb_poids.setValue(valeur)
+                self.sb_poids.setStyleSheet("color : gray;")
+                self.save_btn.setText("Modifier la saisie")
+            else:
+                self.sb_poids.setStyleSheet("")
         
             self.error_label.setStyleSheet(f"""
                 color: {COLOR_GREEN};
@@ -225,36 +204,12 @@ class PoidsForm(QWidget):
             """)
             self.error_label.show()
 
-    def _on_value_selected(self, key: str, value: int):
-        """Met à jour la valeur sélectionnée et rafraîchit les boutons."""
-        self.values[key] = value
-
-        # Rafraîchir les boutons du groupe
-        for btn in self.btn_groups[key]:
-            v = btn.property("value")
-            if v == value:
-                btn.setStyleSheet(self._btn_style_active())
-            else:
-                btn.setStyleSheet(self._btn_style_inactive())
-
-    def _on_save(self):
+    def _on_save(self, value:float):
         """Valide et enregistre le poids en base."""
-        # Vérifier que tout est rempli
-        missing = [label for key, label, _ in INDICATORS
-                   if self.values[key] is None]
-        if missing:
-            self.error_label.setText(
-                f"Indicateur(s) manquant(s) : {', '.join(missing)}"
-            )
-            self.error_label.show()
-            return
-
-        self.error_label.hide()
-
         try:
             create_poids(
                 player_id   = self.player["id"],
-                poids     = self.values["poids"],
+                poids     = value,
 
             )
             self.save_btn.setEnabled(False)

@@ -37,11 +37,16 @@ COLOR_BORDER        = "#2E2E2E"   # Bordure standard
 COLOR_BORDER_ACTIVE = "#00A651"   # Bordure active (vert)
 
 # États wellness / RPE (code couleur)
+COLOR_0          = "#B71C1C"   # rouge foncé
+COLOR_1          = "#C65911"   # orange-rouge foncé
+COLOR_2          = "#F57F17"   # orange foncé
+COLOR_3          = "#A08C00"   # orange-jaune foncé
+COLOR_4          = "#558B2F"   # vert-jaune foncé
+COLOR_5          = "#1B5E20"   # vert foncé
 COLOR_GOOD          = "#00A651"   # Bon état (vert)
 COLOR_WARNING       = "#F5A623"   # Attention (orange)
 COLOR_DANGER        = "#C8102E"   # Danger (rouge)
 COLOR_NEUTRAL       = "#A0A0A0"   # Neutre (gris)
-
 
 # ============================================================
 # TYPOGRAPHIE

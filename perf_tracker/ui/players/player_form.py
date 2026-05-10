@@ -426,6 +426,36 @@ class PlayerForm(QWidget):
         stats_card_layout.addWidget(container)
         #main_layout.addWidget(stats_card)
         scroll_layout.addWidget(stats_card)
+
+# ── Carte des Graphiques
+
+        graphs_card = QFrame()
+        graphs_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLOR_BG_CARD};
+                border: 1px solid {COLOR_BORDER};
+                border-radius: 12px;
+            }}
+        """)
+
+        graphs_card_layout = QHBoxLayout(graphs_card)
+        graphs_card_layout.setContentsMargins(PADDING_CARD, PADDING_CARD,
+                                       PADDING_CARD, PADDING_CARD)
+        graphs_card_layout.setSpacing(24)
+
+        graphs_label = QLabel("Graphiques Personnels")
+        graphs_label.setStyleSheet(f"""
+            color: {COLOR_GREEN};
+            font-size: {FONT_SIZE_TITLE}px;
+            font-weight: 800;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
+        
+        graphs_card_layout.addWidget(graphs_label)
+        scroll_layout.addWidget(graphs_card)
+
         
 # ── Carte des Données
 
@@ -454,8 +484,12 @@ class PlayerForm(QWidget):
         """)
         
         data_card_layout.addWidget(data_label)
-        #main_layout.addWidget(data_card)
         scroll_layout.addWidget(data_card)
+        
+        
+        
+        
+        
         
         scroll_layout.addStretch()
         scroll.setWidget(scroll_content)

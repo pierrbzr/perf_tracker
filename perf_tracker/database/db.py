@@ -3,11 +3,12 @@ database/db.py
 Connexion SQLite + initialisation du schéma + données de test
 """
  
-from datetime import date
+from datetime import date, timedelta
 import sqlite3
 import os
 import hashlib
 import sys
+import random
  
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "perf_tracker.db")
@@ -49,126 +50,99 @@ def seed_data():
     today = date.today().isoformat()
     conn = get_connection()
     cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] > 0:
-         conn.close()
-         return
+     
+    # Valeurs de base stables par joueur
+    base_par_joueur = {
+        player_id: {
+            "poids": round(random.uniform(60.0, 90.0), 1),
+            "grip":  round(random.uniform(40.0, 70.0), 1),
+        }
+        for player_id in range(1, 8)
+    }
     
     print("[DB] Insertion des données de test...")
 
-    staff = [
-        ("LE DUS", "Maxime",  "prepa", "prepa@team.fr",  hash_password("prepa123")),
-        ("DA COSTA", "Kévin", "coach", "coach@team.fr",  hash_password("coach123")),
-    ]
-    cursor.executemany(
-        "INSERT OR IGNORE INTO users (nom, prenom, role, email, password) VALUES (?,?,?,?,?)",
-        staff
-    )
+    #staff = [
+    #    ("LE DUS", "Maxime",  "prepa", "prepa@team.fr",  hash_password("prepa123")),
+    #    ("DA COSTA", "Kévin", "coach", "coach@team.fr",  hash_password("coach123")),
+    #]
+    #cursor.executemany(
+    #    "INSERT OR IGNORE INTO users (nom, prenom, role, email, password) VALUES (?,?,?,?,?)",
+    #    staff
+    #)
 
-    joueurs = [
-        ("Test",  "J",  101, "Attaquant",  "2000-03-15", 180, 78.5),
-        ("Test",   "J",    102, "Milieu",     "1999-07-22", 175, 73.0),
-        ("Test",   "J",  103, "Défenseur",  "2001-01-10", 183, 82.0),
-        ("Test",    "J",    104, "Attaquant",  "2002-05-18", 172, 70.0),
-        ("Test", "J",   105, "Défenseur",  "2000-09-05", 179, 76.0),
-        ("Test", "J",     106, "Milieu",     "2001-12-25", 177, 74.5),
-        ("Test",  "J",      107, "Défenseur",  "1999-04-14", 181, 79.0),
-        
-        ("Perrenoud",  "Phileas",      15, "Attaquant",  "2004-10-01", 179, 73.0),
-        ("Delatour",  "Colin",      77, "Attaquant",  "2003-09-25", 173, 70.0),
-        ("Pardo",  "Tomas",      82, "Attaquant",  "2004-03-28", 183, 74.0),
-        ("Petit",  "Louis",      6, "Attaquant",  "1998-01-06", 177, 77.0),
-        ("Hostein",  "Arthur",      49, "Attaquant",  "2008-02-10", 188, 80.0),
-        ("Le Lem",  "Paul",      19, "Attaquant",  "2006-06-24", 176, 76.0),
-        ("Girre",  "Lucas",      90, "Attaquant",  "2007-03-03", 184, 71.0),
+    #joueurs = [
+    #    ("Test",  "J",  101, "Attaquant",  "2000-03-15", 180, 78.5),
+    #    ("Test",   "J",    102, "Milieu",     "1999-07-22", 175, 73.0),
+    #    ("Test",   "J",  103, "Défenseur",  "2001-01-10", 183, 82.0),
+    #    ("Test",    "J",    104, "Attaquant",  "2002-05-18", 172, 70.0),
+    #    ("Test", "J",   105, "Défenseur",  "2000-09-05", 179, 76.0),
+    #    ("Test", "J",     106, "Milieu",     "2001-12-25", 177, 74.5),
+    #    ("Test",  "J",      107, "Défenseur",  "1999-04-14", 181, 79.0),
+    #    
+    #    ("Perrenoud",  "Phileas",      15, "Attaquant",  "2004-10-01", 179, 73.0),
+    #    ("Delatour",  "Colin",      77, "Attaquant",  "2003-09-25", 173, 70.0),
+    #    ("Pardo",  "Tomas",      82, "Attaquant",  "2004-03-28", 183, 74.0),
+    #    ("Petit",  "Louis",      6, "Attaquant",  "1998-01-06", 177, 77.0),
+    #    ("Hostein",  "Arthur",      49, "Attaquant",  "2008-02-10", 188, 80.0),
+    #    ("Le Lem",  "Paul",      19, "Attaquant",  "2006-06-24", 176, 76.0),
+    #    ("Girre",  "Lucas",      90, "Attaquant",  "2007-03-03", 184, 71.0),
+    #
+    #    ("Shalei",  "Nikita",      24, "Défenseur",  "2001-06-24", 181, 80.0),
+    #    ("Hostein",  "Paulin",      44, "Défenseur",  "2008-02-10", 188, 80.0),
+    #    ("Briantais",  "Eliott",      18, "Défenseur",  "2008-01-09", 185, 76.0),
+    #    ("Godec",  "Romain",      3, "Défenseur",  "2007-03-06", 182, 80.0),
+    #    ("Wendling",  "Noa",      16, "Défenseur",  "2006-09-16", 179, 81.0),
+    #
+    #    ("Richard",  "Olivier",      1, "Gardien", "1991-07-03", 188, 80),
+    #    ("Ylonen",  "Sebastian",      37, "Gardien",  "1991-07-03", 186, 78.0),
+    #    ("Bazire",  "Pierre",      60, "Gardien", "2005-02-09", 178, 78),
+    #    ("Gouranton",  "Emile",      1, "Gardien", "2005-04-07", 172, 78),
+    #]
+    #cursor.executemany(
+    #    """INSERT OR IGNORE INTO players
+    #       (nom, prenom, numero, poste, date_naissance, taille, poids)
+    #       VALUES (?,?,?,?,?,?,?)""",
+    #    joueurs
+    #)
+    
+    for player_id in range(1, 8):
 
-        ("Shalei",  "Nikita",      24, "Défenseur",  "2001-06-24", 181, 80.0),
-        ("Hostein",  "Paulin",      44, "Défenseur",  "2008-02-10", 188, 80.0),
-        ("Briantais",  "Eliott",      18, "Défenseur",  "2008-01-09", 185, 76.0),
-        ("Godec",  "Romain",      3, "Défenseur",  "2007-03-06", 182, 80.0),
-        ("Wendling",  "Noa",      16, "Défenseur",  "2006-09-16", 179, 81.0),
+            # ── Wellness ──
+            base = random.randint(2, 4)
+            s  = max(1, min(5, base + random.randint(-1, 1)))
+            h  = max(1, min(5, base + random.randint(-1, 1)))
+            e  = max(1, min(5, base + random.randint(-1, 1)))
+            c  = max(1, min(5, base + random.randint(-1, 1)))
+            st = max(1, min(5, base + random.randint(-1, 1)))
+            cursor.execute("""
+                INSERT OR REPLACE INTO wellness
+                    (player_id, date, sommeil, humeur, energie, courbatures, stress, score_total)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (player_id, today, s, h, e, c, st, round((s+h+e+c+st)/5, 2)))
 
-        ("Richard",  "Olivier",      1, "Gardien", "1991-07-03", 188, 80),
-        ("Ylonen",  "Sebastian",      37, "Gardien",  "1991-07-03", 186, 78.0),
-        ("Bazire",  "Pierre",      60, "Gardien", "2005-02-09", 178, 78),
-        ("Gouranton",  "Emile",      1, "Gardien", "2005-04-07", 172, 78),
-    ]
-    cursor.executemany(
-        """INSERT OR IGNORE INTO players
-           (nom, prenom, numero, poste, date_naissance, taille, poids)
-           VALUES (?,?,?,?,?,?,?)""",
-        joueurs
-    )
-    
-    # ── Wellness de test (aujourd'hui) ──
-    wellness_data = [
-        (1, today, 4, 3, 4, 2, 3),
-        (2, today, 3, 4, 3, 1, 2),
-        (3, today, 5, 5, 4, 3, 4),
-        (4, today, 2, 2, 3, 4, 5),
-        (5, today, 4, 3, 5, 2, 1),
-        (6, today, 3, 4, 2, 3, 2),
-        (7, today, 5, 4, 4, 1, 3),
-    ]
-    cursor.executemany(
-        """INSERT OR IGNORE INTO wellness
-           (player_id, date, sommeil, humeur, energie, courbatures, stress, score_total)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        [(p, d, s, h, e, c, st, round((s+h+e+c+st)/5, 2))
-         for p, d, s, h, e, c, st in wellness_data]
-    )
- 
-    # ── RPE de test (aujourd'hui) ──
-    rpe_data = [
-        (1, today, 6, 5),
-        (2, today, 7, 6),
-        (3, today, 5, 4),
-        (4, today, 8, 7),
-        (5, today, 6, 5),
-        (6, today, 4, 3),
-        (7, today, 7, 6),
-    ]
-    cursor.executemany(
-        """INSERT OR IGNORE INTO rpe
-           (player_id, date, rpem, rpec)
-           VALUES (?, ?, ?, ?)""",
-        rpe_data
-    )
-    
-    # ── Grip de test (aujourd'hui) ──
-    grip_data = [
-        (1, today, 45.4),
-        (2, today, 44.5),
-        (3, today, 54.4),
-        (4, today, 56.2),
-        (5, today, 61.7),
-        (6, today, 49.2),
-        (7, today, 57.6),
-    ]
-    cursor.executemany(
-        """INSERT OR IGNORE INTO grip
-           (player_id, date, grip)
-           VALUES (?, ?, ?)""",
-        grip_data
-    )
-    
-    # ── poids de test (aujourd'hui) ──
-    poids_data = [
-        (1, today, 78.5),
-        (2, today, 82.0),
-        (3, today, 70.0),
-        (4, today, 76.5),
-        (5, today, 74.2),
-        (6, today, 92.1),
-        (7, today, 85.4),
-    ]
-    cursor.executemany(
-        """INSERT OR IGNORE INTO poids
-           (player_id, date, poids)
-           VALUES (?, ?, ?)""",
-        poids_data
-    )
+            # ── RPE ──
+            base_rpe = random.randint(4, 7)
+            rpem = max(1, min(10, base_rpe + random.randint(-1, 1)))
+            rpec = max(1, min(10, base_rpe + random.randint(-1, 1)))
+            cursor.execute("""
+                INSERT OR REPLACE INTO rpe (player_id, date, rpem, rpec)
+                VALUES (?, ?, ?, ?)
+            """, (player_id, today, rpem, rpec))
+            
+            # ── Grip ──
+            grip = round(base_par_joueur[player_id]["grip"] + random.uniform(-1.5, 1.5), 1)
+            cursor.execute("""
+                INSERT OR REPLACE INTO grip (player_id, date, grip)
+                VALUES (?, ?, ?)
+            """, (player_id, today, grip))
+
+            # ── Poids ──
+            poids = round(base_par_joueur[player_id]["poids"] + random.uniform(-0.3, 0.3), 1)
+            cursor.execute("""
+                INSERT OR REPLACE INTO poids (player_id, date, poids)
+                VALUES (?, ?, ?)
+            """, (player_id, today, poids))
 
     conn.commit()
     conn.close()
