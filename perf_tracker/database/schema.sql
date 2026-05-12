@@ -31,6 +31,27 @@ CREATE TABLE IF NOT EXISTS players (
 );
 
 -- ============================================================
+-- STATISTIQUES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS statistiques (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id       INTEGER NOT NULL REFERENCES players(id),
+    date            TEXT NOT NULL,
+    bench           INTEGER NOT NULL,
+    squat           INTEGER NOT NULL,
+    deadlift        INTEGER NOT NULL,
+    clean           INTEGER NOT NULL,
+    broadjump       INTEGER NOT NULL,
+    cmj             INTEGER NOT NULL,
+    pullup          INTEGER NOT NULL,
+    sprint5m        TEXT NOT NULL,
+    sprint10m       TEXT NOT NULL,
+    sprint20m       TEXT NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(player_id, date)
+);
+
+-- ============================================================
 -- WELLNESS 
 -- Échelle : 0 à 5 pour chaque indicateur
 -- ============================================================
