@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS statistiques (
     sprint5m        TEXT NOT NULL,
     sprint10m       TEXT NOT NULL,
     sprint20m       TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(player_id, date)
 );
 

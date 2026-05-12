@@ -64,7 +64,7 @@ FONT_SIZE_LABEL     = 12
 # DIMENSIONS
 # ============================================================
 
-WINDOW_WIDTH        = 1080
+WINDOW_WIDTH        = 800
 WINDOW_HEIGHT       = 980
 SIDEBAR_WIDTH       = 220
 BORDER_RADIUS       = 8
@@ -284,33 +284,3 @@ QMessageBox {{
     color: {COLOR_TEXT_PRIMARY};
 }}
 """
-
-
-# ============================================================
-# HELPERS — couleur selon score wellness
-# ============================================================
-
-def wellness_color(score: float) -> str:
-    """
-    Retourne une couleur hex selon le score wellness (0-5).
-    ≥ 3.5 → vert / 2.0-3.4 → orange / < 2.0 → rouge
-    """
-    if score >= 3.5:
-        return COLOR_GOOD
-    elif score >= 2.0:
-        return COLOR_WARNING
-    else:
-        return COLOR_DANGER
-
-
-def rpe_color(value: int) -> str:
-    """
-    Retourne une couleur hex selon la valeur RPE (0-10).
-    ≤ 4 → vert / 5-7 → orange / ≥ 8 → rouge
-    """
-    if value <= 4:
-        return COLOR_GOOD
-    elif value <= 7:
-        return COLOR_WARNING
-    else:
-        return COLOR_DANGER

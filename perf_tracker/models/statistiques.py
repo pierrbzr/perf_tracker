@@ -12,13 +12,11 @@ from datetime import date as date_type
 # CRÉATION
 # ============================================================
 
-def create_statistiques(player_id: int, grip: float, bench: float, squat: float, deadlift: float, 
+def create_statistiques(player_id: int, bench: float, squat: float, deadlift: float, 
                 clean: float, broadjump: float, cmj: float, pullup: float, 
                 sprint5m: str, sprint10m: str, sprint20m: str, date: str = None) -> int:
     """
-    Enregistre une saisie Grip pour un joueur.
-    - grip : force du grip (réel)
-    - date : format YYYY-MM-DD, aujourd'hui par défaut
+    Enregistre une saisie des statistiques pour un joueur.
     Retourne l'id de la saisie créée.
     """
     if date is None:
@@ -42,42 +40,40 @@ def create_statistiques(player_id: int, grip: float, bench: float, squat: float,
 # LECTURE
 # ============================================================
 
-def get_statistiques_by_date(player_id: int, date: str) -> dict | None:
+def get_player_statistiques(player_id: int) -> dict | None:
     """
-    Retourne la saisie du Grip d'un joueur pour une date donnée.
-    Retourne None si aucune saisie ce jour.
-    """
-    conn = get_connection()
-    row = conn.execute(
-        """
-        SELECT id, player_id, date, grip, created_at
-        FROM grip
-        WHERE player_id = ? AND date = ?
-        """,
-        (player_id, date)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
-
-def get_grip_history(player_id: int, limit: int = 30) -> list:
-    """
-    Retourne l'historique du grip d'un joueur (30 derniers jours par défaut).
-    Trié du plus récent au plus ancien.
+    Retourne les statistiques d'un joueur pour une date donnée.
     """
     conn = get_connection()
-    rows = conn.execute(
-        """
-        SELECT id, player_id, date, grip
-        FROM grip
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT *
+        FROM statistiques
         WHERE player_id = ?
-        ORDER BY date DESC
-        LIMIT ?
-        """,
-        (player_id, limit)
-    ).fetchall()
+        ORDER BY date ASC
+    """, (player_id,))
+    
+    rows = cursor.fetchall()
     conn.close()
+    
     return [dict(row) for row in rows]
 
+def get_player_recent_statistiques(player_id: int) -> dict | None:
+    """
+    Retourne les statistiques d'un joueur pour une date donnée.
+    """
+    conn = get_connection()
+    row = conn.execute("""
+        SELECT *
+        FROM statistiques
+        WHERE player_id = ?
+        ORDER BY date DESC LIMIT 1;
+    """,
+    (player_id,)
+    ).fetchone()
+    conn.close()
+    
+    return dict(row) if row else None
 
 def get_team_grip_today() -> list:
     """
@@ -95,27 +91,6 @@ def get_team_grip_today() -> list:
         ORDER BY p.numero ASC
         """,
         (today,)
-    ).fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
-
-
-def get_team_grip_range(date_start: str, date_end: str) -> list:
-    """
-    Retourne toutes les saisies du grip de l'équipe entre deux dates.
-    Utile pour les graphiques et exports.
-    """
-    conn = get_connection()
-    rows = conn.execute(
-        """
-        SELECT p.id AS player_id, p.nom, p.prenom, p.numero,
-               g.date, g.grip
-        FROM grip g
-        JOIN players p ON p.id = g.player_id
-        WHERE g.date BETWEEN ? AND ?
-        ORDER BY g.date DESC, p.numero ASC
-        """,
-        (date_start, date_end)
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]

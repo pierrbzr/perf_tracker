@@ -19,6 +19,8 @@ from assets.theme import (
     BORDER_RADIUS, PADDING_CARD, FONT_SIZE_SUBTITLE
 )
 
+from models.statistiques import get_player_statistiques, get_player_recent_statistiques
+
 # ── Définition des données ──────────────────────────────────────
 
 CARDS = [
@@ -75,140 +77,14 @@ CARDS = [
     
 ]
 
-def make_card(data):
-    card = QFrame()
-    card.setObjectName("card")
-    card.setStyleSheet(f"""
-            QFrame {{
-                background-color: {COLOR_BG_CARD};
-                border: 1px solid {COLOR_BORDER};
-                border-radius: 12px;
-            }}
-        """)
-    card.setMinimumHeight(140)
-    card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    
-    layout = QVBoxLayout(card)
-    layout.setContentsMargins(PADDING_CARD, PADDING_CARD,
-                                       PADDING_CARD, PADDING_CARD)
-    layout.setSpacing(12)
-    
-    value_layout = QHBoxLayout()
-    value_layout.setContentsMargins(0, 12, 0, 0)
-    value_layout.setSpacing(0)
-    
-    # Titre
-    titre_label = QLabel(data["title"])
-    titre_label.setObjectName("cardTitle")
-    titre_label.setWordWrap(True)
-    titre_label.setStyleSheet(f"""
-            color: {COLOR_TEXT_PRIMARY};
-            font-size: {FONT_SIZE_SUBTITLE}px;
-            font-weight: 600;
-            font-family: "{FONT_FAMILY}";
-            border: none;
-            background: transparent;
-        """)
-    
-    # Valeur
-    valeur_label = QLabel(f"    " + data["value"])
-    valeur_label.setObjectName("cardValue")
-    valeur_label.setStyleSheet(f"""
-            color: {COLOR_TEXT_SECONDARY};
-            font-size: {FONT_SIZE_SUBTITLE}px;
-            font-family: "{FONT_FAMILY}";
-            border: none;
-            background: transparent;
-        """)
-    
-    btn_layout = QHBoxLayout()
-    btn_layout.setContentsMargins(20, 0, 20, 0)
-    btn_layout.setSpacing(0)
-    
-    # Bouton 
-    btn = QPushButton("Voir Détails")
-    btn.setObjectName("cardButton")
-    btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLOR_GREEN};
-                color: white;
-                border: none;
-                border-radius: {BORDER_RADIUS}px;
-                font-size: {FONT_SIZE_BODY}px;
-                font-weight: 700;
-                font-family: "{FONT_FAMILY}";
-                padding: 10px;
-            }}
-            QPushButton:hover {{ background-color: {COLOR_GREEN_LIGHT}; }}
-            QPushButton:pressed {{ background-color: {COLOR_GREEN_DARK}; }}
-        """)
-    btn.setCursor(Qt.PointingHandCursor)
-    btn.clicked.connect(lambda checked, d=data: print(f"[Card {d['id']}] {d['title']} → {d['value']}"))
 
-    value_layout.addStretch()
-    value_layout.addWidget(titre_label)
-    value_layout.addWidget(valeur_label)
-    value_layout.addStretch()
-    
-    btn_layout.addWidget(btn)
-    
-    layout.addLayout(value_layout)
-    layout.addStretch()
-    layout.addLayout(btn_layout)
-
-    return card
-
-
-class CardsContainer(QFrame):
-    COLUMNS = 3          # nb de colonnes max
-    CARD_MIN_W = 180     # largeur minimale d'une carte (px)
-
-    def __init__(self, cards_data, parent=None):
-        super().__init__(parent)
-        self.setObjectName("cardsContainer")
-        self.cards_data = cards_data
-
-        self._grid = QGridLayout(self)
-        self._grid.setContentsMargins(16, 16, 16, 16)
-        self._grid.setSpacing(12)
-
-        self._build_grid(self.COLUMNS)
-
-    # Reconstruit la grille avec `cols` colonnes
-    def _build_grid(self, cols: int):
-        # Vider sans détruire les widgets
-        while self._grid.count():
-            item = self._grid.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-
-        for i, data in enumerate(self.cards_data):
-            row, col = divmod(i, cols)
-            card = make_card(data)
-            self._grid.addWidget(card, row, col)
-
-        # Colonnes de poids égal → responsive
-        for c in range(cols):
-            self._grid.setColumnStretch(c, 1)
-
-    # Recalcule le nb de colonnes selon la largeur disponible
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        available_w = event.size().width() - 32   # marges
-        cols = max(1, available_w // self.CARD_MIN_W)
-        cols = min(cols, self.COLUMNS)
-
-        current_cols = self._grid.columnCount()
-        if cols != current_cols:
-            self._build_grid(cols)
-            
 class PlayerForm(QWidget):
     """
     Profil du joueur.
     Émet back_requested() pour retourner à la liste.
     """
     back_requested   = pyqtSignal()
-
+    
     def __init__(self, player: dict, parent=None):
         super().__init__(parent)
         self.player = player
@@ -220,7 +96,7 @@ class PlayerForm(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(16)
-
+        
         # ── Header ──
         header = QHBoxLayout()
 
@@ -388,6 +264,8 @@ class PlayerForm(QWidget):
         scroll_layout.addWidget(idendity_card)
 
 # ── Carte des Statistiques
+        
+        stats = get_player_recent_statistiques(self.player['id'])
 
         stats_card = QFrame()
         stats_card.setStyleSheet(f"""
@@ -397,10 +275,8 @@ class PlayerForm(QWidget):
                 border-radius: 12px;
             }}
         """)
-
         stats_card_layout = QVBoxLayout(stats_card)
-        stats_card_layout.setContentsMargins(PADDING_CARD, PADDING_CARD,
-                                       PADDING_CARD, PADDING_CARD)
+        stats_card_layout.setContentsMargins(PADDING_CARD, PADDING_CARD, PADDING_CARD, PADDING_CARD)
         stats_card_layout.setSpacing(24)
 
         pr_label = QLabel("Records Personnels")
@@ -413,17 +289,203 @@ class PlayerForm(QWidget):
             background: transparent;
         """)
         
-        container = CardsContainer(CARDS)
-        container.setStyleSheet(f"""
+        stats_cards_layout = QHBoxLayout()
+        stats_cards_layout.setContentsMargins(30, 30, 30, 30)
+        stats_cards_layout.setSpacing(24)
+                
+        # ── Force
+        
+        stats_force = QFrame()
+        stats_force.setStyleSheet(f"""
             QFrame {{
                 background-color: {COLOR_BG_CARD};
-                border: none;
-                background: transparent;
+                border: 1px solid {COLOR_BORDER};
+                border-radius: 12px;
+            }}
+            QFrame:hover {{ 
+                border: 1px solid {COLOR_GREEN}; 
             }}
         """)
+        force_layout = QVBoxLayout(stats_force)
+        force_layout.setContentsMargins(16, 12, 16, 12)
+        force_layout.setSpacing(12)
+        label_force = QLabel("Force :")
+        label_force.setStyleSheet(f"""
+            color: {COLOR_GREEN};
+            font-size: {FONT_SIZE_SUBTITLE}px;
+            font-weight: 800;
+            font-family: "{FONT_FAMILY}";
+            border: none;
+            background: transparent;
+        """)
+        force_layout.addWidget(label_force)
+        
+        if stats:
+            for nom_label, valeur in [
+                ("Bench Press", f"{stats['bench']} kg"),
+                ("Squat", f"{stats['squat']} kg"),
+                ("Deadlift", f"{stats['deadlift']} kg"),
+                ("Clean", f"{stats['clean']} kg"),
+                ("Pull Ups", f"{stats['pullup']}"),
+            ]:
+                row = QHBoxLayout()
+                row.setContentsMargins(4, 0, 4, 0)
+
+                lbl = QLabel(nom_label)
+                lbl.setStyleSheet(f"""
+                    color: {COLOR_TEXT_SECONDARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                val = QLabel(valeur)
+                val.setAlignment(Qt.AlignRight)
+                val.setStyleSheet(f"""
+                    color: {COLOR_TEXT_PRIMARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-weight: 800;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                row.addWidget(lbl)
+                row.addWidget(val)
+
+                force_layout.addLayout(row)
+                force_layout.addStretch(1)
+        
+            # ── Explo
+            stats_explo = QFrame()
+            stats_explo.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {COLOR_BG_CARD};
+                    border: 1px solid {COLOR_BORDER};
+                    border-radius: 12px;
+                }}
+                QFrame:hover {{ 
+                    border: 1px solid {COLOR_GREEN}; 
+                }}
+            """)
+            explo_layout = QVBoxLayout(stats_explo)
+            explo_layout.setContentsMargins(16, 12, 16, 12)
+            label_explo = QLabel("Explosivité :")
+            label_explo.setStyleSheet(f"""
+                color: {COLOR_GREEN};
+                font-size: {FONT_SIZE_SUBTITLE}px;
+                font-weight: 800;
+                font-family: "{FONT_FAMILY}";
+                border: none;
+                background: transparent;
+            """)
+            explo_layout.addWidget(label_explo)
+
+            for nom_label, valeur in [
+                ("Broad Jump", f"{stats['broadjump']} cm"),
+                ("CMJ", f"{stats['cmj']} cm"),
+            ]:
+                row = QHBoxLayout()
+                row.setContentsMargins(4, 0, 4, 0)
+
+                lbl = QLabel(nom_label)
+                lbl.setStyleSheet(f"""
+                    color: {COLOR_TEXT_SECONDARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                val = QLabel(valeur)
+                val.setAlignment(Qt.AlignRight)
+                val.setStyleSheet(f"""
+                    color: {COLOR_TEXT_PRIMARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-weight: 800;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                row.addWidget(lbl)
+                row.addWidget(val)
+
+                explo_layout.addStretch(1)
+                explo_layout.addLayout(row)
+                explo_layout.addStretch(1)
+
+            # ── Vitesse
+            stats_speed = QFrame()
+            stats_speed.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {COLOR_BG_CARD};
+                    border: 1px solid {COLOR_BORDER};
+                    border-radius: 12px;
+                }}
+                QFrame:hover {{ 
+                    border: 1px solid {COLOR_GREEN}; 
+                }}
+            """)
+            speed_layout = QVBoxLayout(stats_speed)
+            speed_layout.setContentsMargins(16, 12, 16, 12)
+            force_layout.setSpacing(12)
+            label_speed = QLabel("Vitesse :")
+            label_speed.setStyleSheet(f"""
+                color: {COLOR_GREEN};
+                font-size: {FONT_SIZE_SUBTITLE}px;
+                font-weight: 800;
+                font-family: "{FONT_FAMILY}";
+                border: none;
+                background: transparent;
+            """)
+            speed_layout.addWidget(label_speed)
+
+            for nom_label, valeur in [
+                ("Sprint 5m", f"{stats['sprint5m']}"),
+                ("Sprint 10m", f"{stats['sprint10m']}"),
+                ("Sprint 20m", f"{stats['sprint20m']}"),
+            ]:
+                row = QHBoxLayout()
+                row.setContentsMargins(4, 0, 4, 0)
+
+                lbl = QLabel(nom_label)
+                lbl.setStyleSheet(f"""
+                    color: {COLOR_TEXT_SECONDARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                val = QLabel(valeur)
+                val.setAlignment(Qt.AlignRight)
+                val.setStyleSheet(f"""
+                    color: {COLOR_TEXT_PRIMARY};
+                    font-size: {FONT_SIZE_BODY}px;
+                    font-weight: 800;
+                    font-family: "{FONT_FAMILY}";
+                    border: none;
+                    background: transparent;
+                """)
+
+                row.addWidget(lbl)
+                row.addWidget(val)
+
+                speed_layout.addStretch(1)
+                speed_layout.addLayout(row)
+                speed_layout.addStretch(1)
+                            
+            stats_cards_layout.addWidget(stats_force)
+            stats_cards_layout.addWidget(stats_explo)
+            stats_cards_layout.addWidget(stats_speed)
+        
         
         stats_card_layout.addWidget(pr_label)
-        stats_card_layout.addWidget(container)
+        stats_card_layout.addLayout(stats_cards_layout)
+
+
         #main_layout.addWidget(stats_card)
         scroll_layout.addWidget(stats_card)
 
@@ -484,8 +546,7 @@ class PlayerForm(QWidget):
         """)
         
         data_card_layout.addWidget(data_label)
-        scroll_layout.addWidget(data_card)
-        
+        scroll_layout.addWidget(data_card)      
         
         
         
