@@ -19,7 +19,8 @@ from assets.theme import (
     BORDER_RADIUS, PADDING_CARD, FONT_SIZE_SUBTITLE
 )
 
-from models.statistiques import get_player_statistiques, get_player_recent_statistiques
+from models.statistiques import get_player_recent_statistiques
+from models.graphs import StatsForceGraph
 
 # ── Définition des données ──────────────────────────────────────
 
@@ -292,35 +293,36 @@ class PlayerForm(QWidget):
         stats_cards_layout = QHBoxLayout()
         stats_cards_layout.setContentsMargins(30, 30, 30, 30)
         stats_cards_layout.setSpacing(24)
-                
-        # ── Force
-        
-        stats_force = QFrame()
-        stats_force.setStyleSheet(f"""
-            QFrame {{
-                background-color: {COLOR_BG_CARD};
-                border: 1px solid {COLOR_BORDER};
-                border-radius: 12px;
-            }}
-            QFrame:hover {{ 
-                border: 1px solid {COLOR_GREEN}; 
-            }}
-        """)
-        force_layout = QVBoxLayout(stats_force)
-        force_layout.setContentsMargins(16, 12, 16, 12)
-        force_layout.setSpacing(12)
-        label_force = QLabel("Force :")
-        label_force.setStyleSheet(f"""
-            color: {COLOR_GREEN};
-            font-size: {FONT_SIZE_SUBTITLE}px;
-            font-weight: 800;
-            font-family: "{FONT_FAMILY}";
-            border: none;
-            background: transparent;
-        """)
-        force_layout.addWidget(label_force)
         
         if stats:
+                
+            # ── Force
+
+            stats_force = QFrame()
+            stats_force.setStyleSheet(f"""
+                QFrame {{
+                    background-color: {COLOR_BG_CARD};
+                    border: 1px solid {COLOR_BORDER};
+                    border-radius: 12px;
+                }}
+                QFrame:hover {{ 
+                    border: 1px solid {COLOR_GREEN}; 
+                }}
+            """)
+            force_layout = QVBoxLayout(stats_force)
+            force_layout.setContentsMargins(16, 12, 16, 12)
+            force_layout.setSpacing(12)
+            label_force = QLabel("Force :")
+            label_force.setStyleSheet(f"""
+                color: {COLOR_GREEN};
+                font-size: {FONT_SIZE_SUBTITLE}px;
+                font-weight: 800;
+                font-family: "{FONT_FAMILY}";
+                border: none;
+                background: transparent;
+            """)
+            force_layout.addWidget(label_force)
+        
             for nom_label, valeur in [
                 ("Bench Press", f"{stats['bench']} kg"),
                 ("Squat", f"{stats['squat']} kg"),
@@ -480,10 +482,29 @@ class PlayerForm(QWidget):
             stats_cards_layout.addWidget(stats_force)
             stats_cards_layout.addWidget(stats_explo)
             stats_cards_layout.addWidget(stats_speed)
+            
+        # ── Bouton de modification des Maxs
+        
+        update_stats_btn = QPushButton('Modifier')
+        update_stats_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLOR_GREEN};
+                color: white;
+                border: none;
+                border-radius: {BORDER_RADIUS}px;
+                font-size: {FONT_SIZE_BODY}px;
+                font-weight: 700;
+                font-family: "{FONT_FAMILY}";
+                padding: 10px;
+            }}
+            QPushButton:hover {{ background-color: #00C962; }}
+            QPushButton:pressed {{ background-color: #007A3D; }}
+        """)
         
         
         stats_card_layout.addWidget(pr_label)
         stats_card_layout.addLayout(stats_cards_layout)
+        stats_card_layout.addWidget(update_stats_btn)
 
 
         #main_layout.addWidget(stats_card)
@@ -500,7 +521,7 @@ class PlayerForm(QWidget):
             }}
         """)
 
-        graphs_card_layout = QHBoxLayout(graphs_card)
+        graphs_card_layout = QVBoxLayout(graphs_card)
         graphs_card_layout.setContentsMargins(PADDING_CARD, PADDING_CARD,
                                        PADDING_CARD, PADDING_CARD)
         graphs_card_layout.setSpacing(24)
@@ -515,7 +536,38 @@ class PlayerForm(QWidget):
             background: transparent;
         """)
         
+        graphs_layout = QHBoxLayout()
+        
+        
+        labels_force = [
+            "Bench Press",
+            "Squat",
+            "Deadlift",
+            "Clean",
+            "Pull Ups"
+        ]
+
+        
+        labels_speed = [
+            "Bench Press",
+            "Squat",
+            "Deadlift",
+            "Clean",
+            "Pull Ups"
+        ]
+
+        # Valeurs utilisateur
+        #values = [4.5, 3.0, 2.0, 4.0, 1.5]
+        values = [stats['bench'], stats['squat'], stats['deadlift'], stats['clean'], stats['pullup']*10]
+
+        # Moyenne équipe
+        averages = [70, 150, 170, 60, 9*10]
+
+        radar = StatsForceGraph(values, averages, labels_force)        
+        
         graphs_card_layout.addWidget(graphs_label)
+        graphs_card_layout.addLayout(graphs_layout)
+        graphs_layout.addWidget(radar)
         scroll_layout.addWidget(graphs_card)
 
         
@@ -550,8 +602,6 @@ class PlayerForm(QWidget):
         
         
         
-        
-        
         scroll_layout.addStretch()
         scroll.setWidget(scroll_content)
         main_layout.addWidget(scroll)
@@ -560,7 +610,3 @@ class PlayerForm(QWidget):
 
     # ── Logique ─────────────────────────────────────────────
 
-
-
-
-    # ── Styles boutons ───────────────────────────────────────

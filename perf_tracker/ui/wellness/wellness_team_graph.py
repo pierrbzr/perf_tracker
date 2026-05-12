@@ -136,10 +136,10 @@ class WellnessTeamGraph(QWidget):
         legend.addStretch()
         main_layout.addLayout(legend)
         
-        test_chart = QFrame()
-        test_chart.setFixedHeight(500)
+        chart = QFrame()
+        chart.setFixedHeight(500)
         
-        layout = QHBoxLayout(test_chart)
+        layout = QHBoxLayout(chart)
         layout.setContentsMargins(16, 0, 16, 0)
         layout.setSpacing(12)
         
@@ -147,7 +147,7 @@ class WellnessTeamGraph(QWidget):
         self.chart.setMinimumHeight(500)
         layout.addWidget(self.chart)
         
-        main_layout.addWidget(test_chart)
+        main_layout.addWidget(chart)
         
         main_layout.addStretch()
         

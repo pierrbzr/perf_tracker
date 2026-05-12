@@ -4,10 +4,14 @@ Toutes les fonctions relatives à la création des graphiques
 """
 
 import pyqtgraph as pg
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QApplication, QWidget
+from PyQt5.QtGui import QPen, QColor, QBrush, QPolygonF
+
+from PyQt5.QtCore import Qt, QPointF
 
 import time
+import sys
+import math
 from datetime import date, datetime
 
 from assets.theme import (
@@ -37,6 +41,7 @@ class WellnessChart(QFrame):
         # ── Widget graphique ──
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.setBackground("#1E1E2E")
+        self.plot_widget.setMouseEnabled(x=False, y=False)
         self.plot_widget.showGrid(x=False, y=False, alpha=0.2)
         self.plot_widget.setYRange(1, 5)
         self.plot_widget.setTitle("Wellness moyen — Équipe", color=f"{COLOR_TEXT_PRIMARY}", size="15pt")
@@ -444,3 +449,121 @@ class RPEChart(QFrame):
     def set_days(self, days: int):
         self.days = days
         self.refresh()
+
+class StatsForceGraph(pg.GraphicsLayoutWidget):
+    def __init__(self, values, averages, labels):
+        super().__init__()
+
+        self.setBackground("#1E1E2E")
+
+        self.values = values
+        self.averages = averages
+        self.labels = labels
+
+        self.max_value = 200
+        self.levels = 15
+
+        self.plot = self.addPlot()
+        self.plot.hideAxis("bottom")
+        self.plot.hideAxis("left")
+        self.plot.setAspectLocked()
+        self.plot.setMouseEnabled(x=False, y=False)
+
+        self.draw_chart()
+
+    def polar_to_cartesian(self, angle, radius):
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        return QPointF(x, y)
+
+    def draw_chart(self):
+        count = len(self.labels)
+        angles = [2 * math.pi * i / count - math.pi / 2 for i in range(count)]
+
+        # Grille polygonale
+        for level in range(1, self.levels + 1):
+            radius = level / self.levels
+
+            points = [
+                self.polar_to_cartesian(a, radius)
+                for a in angles
+            ]
+            points.append(points[0])
+
+            poly = QPolygonF(points)
+
+            self.plot.addItem(
+                pg.PlotCurveItem(
+                    x=[p.x() for p in poly],
+                    y=[p.y() for p in poly],
+                    pen=pg.mkPen("#44475A", width=1)
+                )
+            )
+
+            # Axes
+        for i, angle in enumerate(angles):
+            end = self.polar_to_cartesian(angle, 1)
+
+            self.plot.addItem(
+                pg.PlotCurveItem(
+                    x=[0, end.x()],
+                    y=[0, end.y()],
+                    pen=pg.mkPen("#666", width=1)
+                )
+            )
+
+            # Labels
+            label_pos = self.polar_to_cartesian(angle, 1.15)
+
+            text = pg.TextItem(
+                html=f"""
+                <div style='text-align:center;color:white;font-size:12pt'>
+                    {self.labels[i]}
+                </div>
+                """,
+                anchor=(0.5, 0.5)
+            )
+            text.setPos(label_pos.x(), label_pos.y())
+            self.plot.addItem(text)
+
+        # Moyenne équipe
+        avg_points = []
+
+        for angle, value in zip(angles, self.averages):
+            radius = value / self.max_value
+            avg_points.append(
+                self.polar_to_cartesian(angle, radius)
+            )
+
+        avg_points.append(avg_points[0])
+
+        self.plot.addItem(
+            pg.PlotCurveItem(
+                x=[p.x() for p in avg_points],
+                y=[p.y() for p in avg_points],
+                pen=pg.mkPen("#AAAAAA", width=2, style=Qt.DashLine),
+                brush=QBrush(QColor(170, 170, 170, 40)),
+                fillLevel=0
+            )
+        )
+
+        # Valeurs utilisateur
+        user_points = []
+        
+        for angle, value in zip(angles, self.values):
+            radius = value / self.max_value
+            user_points.append(
+                self.polar_to_cartesian(angle, radius)
+            )
+
+        user_points.append(user_points[0])
+
+        self.plot.addItem(
+            pg.PlotCurveItem(
+                x=[p.x() for p in user_points],
+                y=[p.y() for p in user_points],
+                pen=pg.mkPen("#534AB7", width=3),
+                brush=QBrush(QColor(83, 74, 183, 100)),
+                fillLevel=0
+            )
+        )
